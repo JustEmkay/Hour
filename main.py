@@ -68,12 +68,21 @@ def main():
     if not st.session_state.task:st.info("List is Empty.")
     
     st.divider()
-    st.session_state
+    
 
     #display tasks
+    st.subheader("Tasks Pending:")
+    st.caption("Thses are the tasks you have to finish you Lazy")
     for j,tasks in enumerate(st.session_state.task):
         if tasks["done"]==False or tasks["done"]=="false":
-            st.write(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ***{tasks['description']}***")
+            done_task=st.checkbox(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ***{tasks['description']}***",key=j)
+            if done_task:
+                print("done taks:",done_task)
+        if tasks["done"]==True or tasks["done"]=="true":
+            st.write(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ~***{tasks['description']}***~")
+    
+
+    
     st.divider()
     clear=st.button("Clear")
     if clear:
@@ -81,7 +90,7 @@ def main():
         st.session_state.time_have=10080
         st.rerun()
 
-
+    st.session_state
 
 
 if __name__ == "__main__":

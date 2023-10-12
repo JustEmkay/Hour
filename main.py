@@ -86,12 +86,11 @@ def main():
             if done_task:
                 st.session_state.task[j]["done"]=True
                 st.rerun()
+
         if tasks["done"]==True or tasks["done"]=="true":
             undone_task=st.checkbox(f":gray[Added on: :green[{unixtotime(tasks['added_on'])}] | ~***{tasks['description']}***~]",value=True)
             if not undone_task:
                 st.session_state.task[j]["done"]=False
-                st.balloons()
-                # time.sleep(3) 
                 st.rerun()
     
     st.divider()

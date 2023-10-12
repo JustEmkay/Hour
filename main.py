@@ -1,5 +1,6 @@
 import streamlit as st
-from datetime import datetime,date,time
+from datetime import datetime,time
+import time
 
 
 if "task" not in st.session_state:st.session_state.task=[]
@@ -15,8 +16,7 @@ def unixtodate():
 
 def unixtotime(ut):
     dt_object = datetime.fromtimestamp(ut)
-    formatted_time = dt_object.strftime(' %d:%M:%S')
-    # print(f"{formatted_date} convert to time")
+    formatted_time = dt_object.strftime(' %I:%M:%S')
     return formatted_time
 
 def main():
@@ -39,11 +39,17 @@ def main():
     # time_slider=col2.slider("Select time needed to finish the task:",max_value=total_time,step=5)
     time_input=col2.number_input("Select how much time needed to finish this task:",max_value=total_time)
     if date_selected:
-        print(date_selected.isocalendar())
-        dt_obj=datetime.combine(date_selected,time())
-        unix_time=datetime.timestamp(dt_obj)
-        unix_time
-        print("today",datetime.now())
+        print(date_selected,date_selected.isocalendar())
+        selected_date=datetime(date_selected.year,date_selected.month,date_selected.day)
+        print(selected_date)
+        to_timestamp=datetime.timestamp(selected_date)
+        # ts=datetime.timestamp(date_selected)
+        # print("ts:",ts)
+        # time_obj=time()
+        # dt_obj=datetime.combine(date_selected,time_obj)
+        # unix_time=datetime.timestamp(dt_obj)
+        # unix_time
+        # print("today",datetime.now())
         # this conditon not working?? i dont know why!!
         # if st.session_state.current_week >= date_selected.isocalendar()[1] and date_selected.isocalendar()[2] >= st.session_state.current_weekday : dt_val = True
         # else: dt_val=False
@@ -56,8 +62,9 @@ def main():
     if text and dt_val:activate,hactivate=False,"Press to add task."
     else: activate,hactivate=True,":red[Error? Maybe you tried to add a blank task OR Tried to add task from past!]"
     addtask=st.button("Add Task.",use_container_width=True,disabled=activate,help=hactivate)
+    st.write(f"Today:",datetime.now())
     if addtask:
-        dict={"description":text,"done":False,"minutes":time_input,"for":unix_time,"added_on":int(datetime.timestamp(datetime.now()))}
+        dict={"description":text,"done":False,"minutes":time_input,"for":to_timestamp,"added_on":int(datetime.timestamp(datetime.now()))}
         try:
             st.session_state.task.append(dict)
             st.session_state.time_have=10080-int(time_input)
@@ -75,13 +82,17 @@ def main():
     st.caption("Thses are the tasks you have to finish you Lazy")
     for j,tasks in enumerate(st.session_state.task):
         if tasks["done"]==False or tasks["done"]=="false":
-            done_task=st.checkbox(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ***{tasks['description']}***",key=j)
+            done_task=st.checkbox(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ***{tasks['description']}***",key=j,help=":red[Dude stop procrastinating and do your work.]🤦‍♀️")
             if done_task:
-                print("done taks:",done_task)
+                st.session_state.task[j]["done"]=True
+                st.rerun()
         if tasks["done"]==True or tasks["done"]=="true":
-            st.write(f"Added on: :green[{unixtotime(tasks['added_on'])}] | ~***{tasks['description']}***~")
-    
-
+            undone_task=st.checkbox(f":gray[Added on: :green[{unixtotime(tasks['added_on'])}] | ~***{tasks['description']}***~]",value=True)
+            if not undone_task:
+                st.session_state.task[j]["done"]=False
+                st.balloons()
+                # time.sleep(3) 
+                st.rerun()
     
     st.divider()
     clear=st.button("Clear")

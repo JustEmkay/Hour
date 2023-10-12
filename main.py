@@ -43,12 +43,6 @@ def main():
         selected_date=datetime(date_selected.year,date_selected.month,date_selected.day)
         print(selected_date)
         to_timestamp=datetime.timestamp(selected_date)
-        # ts=datetime.timestamp(date_selected)
-        # print("ts:",ts)
-        # time_obj=time()
-        # dt_obj=datetime.combine(date_selected,time_obj)
-        # unix_time=datetime.timestamp(dt_obj)
-        # unix_time
         # print("today",datetime.now())
         # this conditon not working?? i dont know why!!
         # if st.session_state.current_week >= date_selected.isocalendar()[1] and date_selected.isocalendar()[2] >= st.session_state.current_weekday : dt_val = True
@@ -56,7 +50,6 @@ def main():
         if int(st.session_state.current_week) <= date_selected.isocalendar()[1]:
             dt_val=True
         else: dt_val=False
-
 
 
     if text and dt_val:activate,hactivate=False,"Press to add task."

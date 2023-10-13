@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime,time
 import time
+import calendar
 
 
 if "task" not in st.session_state:st.session_state.task=[]
@@ -31,10 +32,9 @@ def main():
     tbp=int((st.session_state.time_have/10080)*100)
     time_bar=st.progress(tbp,text=f"**Time Left:** :red[{st.session_state.time_have}] Out of :green[10080] Minutes")
     st.divider()
-    text=st.text_input("write here:",key="exptext",on_change=experiment)
-    
+    text=st.text_input("Write here:",key="exptext",on_change=experiment)
     col1,col2=st.columns(2)
-    date_selected=col1.date_input("Select Date",help="",format="DD/MM/YYYY",value="today")
+    date_selected=col1.date_input("Select Date:",help=":gray[Cannot Select past months.]",format="DD/MM/YYYY",value="today")
     total_time=st.session_state.time_have
     # time_slider=col2.slider("Select time needed to finish the task:",max_value=total_time,step=5)
     time_input=col2.number_input("Select how much time needed to finish this task:",max_value=total_time)
@@ -55,7 +55,7 @@ def main():
     if text and dt_val:activate,hactivate=False,"Press to add task."
     else: activate,hactivate=True,":red[Error? Maybe you tried to add a blank task OR Tried to add task from past!]"
     addtask=st.button("Add Task.",use_container_width=True,disabled=activate,help=hactivate)
-    st.write(f"Today:",datetime.now())
+    # st.write(f"Today:",datetime.now())
     if addtask:
         dict={"description":text,"done":False,"minutes":time_input,"for":to_timestamp,"added_on":int(datetime.timestamp(datetime.now()))}
         try:
@@ -93,7 +93,8 @@ def main():
         st.session_state.time_have=10080
         st.rerun()
 
-    st.session_state
+    # st.session_state
+    # print((calendar.monthcalendar(datetime.now().year,datetime.now().month)))
 
 
 if __name__ == "__main__":

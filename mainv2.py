@@ -28,8 +28,7 @@ def past_val(past):
                 return True
         if past[1]<st.session_state.today[1]:
             return True
-    else:
-        print("year condition FALSE")
+
 
 #future_date_validation
 def future_val(future):
@@ -39,8 +38,16 @@ def future_val(future):
                 return True
         if future[1]>st.session_state.today[1]:
             return True
+        
+#tab information
+def tab_info(tab_pass):
+    if tab_pass[1] == 0:
+        return "Look like you finsided All Your tasks!!"
+    elif tab_pass[0] == 0 :
+        return f"Damn you'r super lazy!! "
     else:
-        print("year condition FALSE")
+        return f"{tab_pass[0]} Task completed 👏 {tab_pass[1]} More Left to be completed. "
+
 
 def main():
     #task counts
@@ -83,46 +90,57 @@ def main():
     st.divider()
     # st.session_state
     tab1,tab2,tab3=st.tabs(["▶️Today","⏪Past","⏩Future"])
-
     
+    cd,ncd=0,0 
+    tab_pass=[0,0]
     #This tab display only current task
     with tab1:
-        st.write("today tasks to finish")
+
         for id,txt in enumerate(st.session_state.task):
             today_date_check=datetime.isocalendar(datetime.fromtimestamp(txt['for_date']).date())
             # print(today_date_check)
             if today_date_check[0] == st.session_state.today[0] and today_date_check[1] == st.session_state.today[1] and today_date_check[2] == st.session_state.today[2]:
                 if txt['done']==False:
-                    done=st.checkbox(f"{txt['dsptn']} | {datetime.fromtimestamp(txt['for_date']).date()}")
+                    ncd+=1
+                    done=st.checkbox(f"{txt['dsptn']} | {datetime.fromtimestamp(txt['for_date']).date()}",help=f"Added on:{datetime.fromtimestamp(txt['for_date']).date()}")
                     if done:
                         st.session_state.task[id]['done']=True
                         st.rerun()
                 if txt['done']==True:
+                    cd+=1
                     not_done=st.checkbox(f"~{txt['dsptn']} | {datetime.fromtimestamp(txt['for_date']).date()}~",value=True)
                     if not not_done:
                         st.session_state.task[id]['done']=False
                         st.rerun()
+            tab_pass[0]=cd
+            tab_pass[1]=ncd
+        st.info(f"{tab_info(tab_pass)}",icon="💁‍♀️")
+        tab_pass=[0,0]
+        cd,ncd=0,0
+        
 
     #This tab display pedding task from past :(
     with tab2:
-        st.write("today tasks to finish")
+        st.write("past tasks to finish")
         for id1,txt1 in enumerate(st.session_state.task):
             past_date_check=datetime.isocalendar(datetime.fromtimestamp(txt1['for_date']).date())
             if past_val(past_date_check):
                 if txt1['done']==False:
+                    ncd+=1
                     done1=st.checkbox(f"{txt1['dsptn']} | {datetime.fromtimestamp(txt1['for_date']).date()}")
                     if done1:
                         st.session_state.task[id1]['done']=True
                         st.rerun()
                 if txt1['done']==True:
+                    cd+=1
                     not_done1=st.checkbox(f"~{txt1['dsptn']} | {datetime.fromtimestamp(txt1['for_date']).date()}~",value=True)
                     if not not_done1:
                         st.session_state.task[id1]['done']=False
                         st.rerun()
-
-
-                # done1=st.checkbox(f"{txt1['dsptn']} | {datetime.fromtimestamp(txt1['for_date']).date()}")
-
+            tab_pass[0],tab_pass[1]=cd,ncd
+        st.info(f"{tab_info(tab_pass)}",icon="💁‍♀️")
+        tab_pass=[0,0]
+        cd,ncd=0,0
 
     #This tab display task for Future :)
     with tab3:
@@ -132,18 +150,27 @@ def main():
             if future_val(future_date_check):
                 if txt2['done']==False:
                     done2=st.checkbox(f"{txt2['dsptn']} | {datetime.fromtimestamp(txt2['for_date']).date()}",help=f"added on :red[{datetime.fromtimestamp(txt2['added_date']).date()}]")
+                    ncd+=1
                     if done2:
                         st.session_state.task[id2]['done']=True
                         st.rerun()
                 if txt2['done']==True:
                     not_done2=st.checkbox(f"~{txt2['dsptn']} | {datetime.fromtimestamp(txt2['for_date']).date()}~",value=True)
+                    cd+=1
                     if not not_done2:
                         st.session_state.task[id2]['done']=False
                         st.rerun()
-                # done2=st.checkbox(f"{txt2['dsptn']} | {datetime.fromtimestamp(txt2['for_date']).date()}")
-
-
+            tab_pass[0]=cd
+            tab_pass[1]=ncd
+        st.info(f"{tab_info(tab_pass)}",icon="💁‍♀️")
+        tab_pass=[0,0]
+        cd,ncd=0,0    
+    
     st.divider()
+    
+
+    cd,ncd=0,0  
+
     clear_task=st.button("Clear all")
     if clear_task:
         st.session_state.task=[]

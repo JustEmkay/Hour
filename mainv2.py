@@ -7,10 +7,17 @@ st.title("Task Manager")
 # Create a list to store tasks in streamlit session_state
 if "task" not in st.session_state: st.session_state.task=[]
 if "task_count" not in st.session_state:st.session_state.task_count=[0,0]
+if "today" not in st.session_state:st.session_state.today=[0,0,0]
 
+# Getting Today's Year,Week,Weekday to variable and session_tate_today
+st.session_state.today[0]=y=datetime.isocalendar(datetime.now())[0]
+st.session_state.today[1]=w=datetime.isocalendar(datetime.now())[1]
+st.session_state.today[2]=wd=datetime.isocalendar(datetime.now())[2]
+# print(y,w,wd)
 
 current_time = datetime.now().strftime("%I:%M:%S")
-current_timestamp = datetime.timestamp(datetime.now()) 
+current_timestamp = datetime.timestamp(datetime.now())
+cyear,cmonth,cday=datetime.now().year,datetime.now().month,datetime.now().day
 
 
 def main():
@@ -33,9 +40,13 @@ def main():
     st.divider()
 
     task_input=st.text_input("Write here:")
+    if task_input:
+        disable=False
+    else:
+        disable=True
     col4,col5=st.columns(2)
     date_input=col4.date_input("Date",label_visibility="collapsed")
-    add_task=col5.button("Add task",use_container_width=True)
+    add_task=col5.button("Add task",use_container_width=True,disabled=disable)
     if add_task:
         add={'dsptn':task_input,'done':False,'for_date':datetime.timestamp(datetime(date_input.year,date_input.month,date_input.day)),'added_date':int(datetime.timestamp(datetime.now()))}
         try:
@@ -48,40 +59,25 @@ def main():
 
 
     st.divider()
-
+    # st.session_state
     tab1,tab2,tab3=st.tabs(["▶️Today","⏪Past","⏩Future"])
 
+    
     #This tab display only current task
     with tab1:
+        st.write("today list")
         for id,txt in enumerate(st.session_state.task):
-            if datetime.fromtimestamp(txt['for_date']).date() == datetime.now().date():
-                if txt['done'] == False or txt['done'] == "false":        
-                    check=st.checkbox(f"Added on: :green[*{datetime.fromtimestamp(txt['added_date']).date()}*] | Task: :red[*{txt['dsptn']}*] | For: {datetime.fromtimestamp(txt['for_date']).date()} | Status: :gray[{txt['done']}]",key=id)
-                    if check:
-                        st.session_state.task[id]['done']=True
-                        st.rerun()
-                if txt['done'] == True or txt['done'] == "true":
-                    uncheck=st.checkbox(f"~Task: :red[*{txt['dsptn']}*] | Status: :gray[{txt['done']}]~",value=True)
-                    if not uncheck:
-                        st.session_state.task[id]['done']=False
-                        st.rerun()
-    
+            done=st.checkbox(txt['dsptn'])
+
+
     #This tab display pedding task from past :(
     with tab2:
-        slct1=st.multiselect("Tasks From past:", ["milk", "apples", "potatoes"])
-        
-        if len(slct1)==0:
-            st.write("Show all past tasks")
-        else:
-            slct1
+        st.write("Show all past tasks.")
 
     #This tab display task for Future :)
     with tab3:
-        slct2=st.multiselect("Tasks From future:", ["milk", "apples", "potatoes"])
-        if len(slct2)==0:
-            st.write("Show all future tasks")
-        else:
-            slct2
+        st.write("Show all future tasks")
+
 
     st.divider()
     clear_task=st.button("Clear all")

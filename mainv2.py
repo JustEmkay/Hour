@@ -85,11 +85,8 @@ def first():
         """
     )
 
-
 def main():
 
-    with st.spinner(text="loading Home page..."):
-        time.sleep(2)
     with st.sidebar:
         st.title("Welcome To Weekly📅")
         st.success(f"**Year: :green[{y}] | Week: :green[{w}] | Weekday: :green[{wd}]**")
@@ -99,12 +96,14 @@ def main():
         #import & export tasks as csv
         with st.expander("Import☝️/Export👇"):
             upload = st.file_uploader("Upload your CSV File:",type=["csv"])
+            activate_button=True
             if upload:
                 try:
                     print("upload working")
                     u_df=pd.read_csv(upload)
                     task_import_data= u_df.to_dict(orient="records")
                     st.toast("Backup Found",icon="✅")
+                    activate_button=False
                 except:
                     st.toast("lol error",icon="⚠️") 
 
@@ -232,14 +231,19 @@ def main():
         st.divider()
         
 
-        cd,ncd=0,0  
+        cd,ncd=0,0
+        col6,col7=st.columns(2)  
         # clear all task button
-        clear_task=st.button("Clear all")
+        clear_task=col6.button("Clear all",use_container_width=True)
         if clear_task:
             st.session_state.task=[]
             st.session_state.task_count=[0,0]
             st.rerun()
-
+        
+        upload_update= col7.button("Load from Backup",use_container_width=True,disabled=activate_button)
+        if upload_update:
+            st.session_state.task=task_import_data
+            st.rerun()
         # st.session_state
 
     #Experment Page

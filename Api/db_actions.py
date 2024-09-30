@@ -224,7 +224,7 @@ def check_user(**kwargs) -> dict:
             
 def get_userdata(**kwargs) -> dict:
         
-    cursor.execute("SELECT uid,username,password FROM users_data WHERE username = ? OR email = ?",(kwargs['userinput'],kwargs['userinput'],))
+    cursor.execute("SELECT uid,username,password,dob FROM users_data WHERE username = ? OR email = ?",(kwargs['userinput'],kwargs['userinput'],))
     result = cursor.fetchone()
     
     return result    

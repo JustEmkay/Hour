@@ -27,7 +27,8 @@ def logout_menu() -> None:
         st.session_state.auth = {
         'authorization' : False,
         'username' : None,
-        'userid' : None
+        'userid' : None,
+        'dob' : None
     }
         st.rerun()
     

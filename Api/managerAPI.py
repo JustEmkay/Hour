@@ -69,6 +69,7 @@ async def validate_user(loginInfo : LoginInfo):
                 'user_data' : {
                     'userid' : val_data[0],
                     'username' : val_data[1],
+                    'dob' : val_data[3]    ,
                     'authorization' : True
                 }
             }

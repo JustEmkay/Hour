@@ -24,9 +24,18 @@ class LoginInfo(BaseModel):
     userinput : str
     password : str
     
+class taskData(BaseModel):
+    task : str
+    description : str
+    priority : bool
+    urgent : bool
+    t_type : str
+    status : bool
+    task_date : int
+    
     
 @app.get("/")
-def test():
+async def test():
     return{
         'author' : 'emkay' 
     }    
@@ -52,7 +61,7 @@ async def register_user(userdata : UserRegister):
                                 userdata.password,now_date)
     return action
 
-@app.post("/login")
+@app.get("/login")
 async def validate_user(loginInfo : LoginInfo):
     result = check_user(username = loginInfo.userinput, email = loginInfo.userinput)   
     if result['email'] or result['username']:
@@ -84,3 +93,23 @@ async def validate_user(loginInfo : LoginInfo):
         'message' : 'user not found'
     }
         
+@app.post("/task/create/{uid}/")
+async def create_task(uid : str ,tdata : taskData):
+    
+    if insert_task(uid=uid,created_date=tdata.task_date,
+                   task=tdata.task,description=tdata.description,
+                   task_type=tdata.t_type,priority=tdata.priority,urgent=tdata.urgent):
+    
+        return {
+            'status' : True,
+            'message' : 'task added succefully.'
+        }
+    return {
+            'status' : False,
+            'message' : 'Failed to create task.'
+        }
+    
+@app.get("/task/today/{uid}/{created_date}")
+async def todays_task(uid:str, created_date:int):
+    result = get_today_task(uid=uid,created_date=created_date)
+    

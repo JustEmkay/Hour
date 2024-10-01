@@ -1,7 +1,7 @@
 import streamlit as st 
 from datetime import datetime
 import re,requests,time
-from models import UserRegister
+from models import UserRegister,Task
 from Home import API_URL
 
 def age_calc(dob : datetime.date ) -> dict:
@@ -20,7 +20,7 @@ def create_account(**userdata) -> dict:
         return req.json()
     
 def validate_user(**userinputs) -> None:
-    req = requests.post(API_URL + "login",json=userinputs)
+    req = requests.get(API_URL + "login",json=userinputs)
     resp = req.status_code
     if resp == 200:
         return req.json()
@@ -88,8 +88,8 @@ def login_form() -> dict:
     st.title('login',anchor=False)
     st.divider()
     
-    user_input : str = st.text_input('Enter username/email:',value='1234')
-    user_password : str = st.text_input('Enter password:',type='password',value='12345678')
+    user_input : str = st.text_input('Enter username/email:')
+    user_password : str = st.text_input('Enter password:',type='password')
     alert_col, frgt_bttn, login_bttn = st.columns([2,1,1])
     
     alert = alert_col.empty()
@@ -114,4 +114,51 @@ def login_form() -> dict:
         else:
             alert.warning(val_response['message'],icon='🤦‍♂️')
             
+
+def create_task(**task_data) -> dict:
+    req = requests.post(API_URL + f"task/create/{st.session_state.auth['userid']}/",
+                        json=task_data)
+    res = req.status_code
+    if res == 200:
+        return req.json()
+    else:
+        return {
+            'status' : False,
+            'message' : 'Connecting to server failed'
+        }
+       
+@st.dialog('create task',width='large')
+def create_task_dialog():
+
+    preview = st.empty()
+    edit_col, preview_col  = st.columns(2)
+    
+    
+    with edit_col.container():
+    
+        title = st.text_input('Enter the task title:',placeholder='Example: go for walk')
+        description = st.text_area('Enter description of task:',placeholder='Example: from BOT to edakochi')
+        p_col, u_col = st.columns(2)
+        priority = p_col.radio("Task Priority",[True,False])
+        urgent = u_col.radio("Task Urgency",[True,False])
+        t_type = st.selectbox('select task type:',['once','daily','monthly','yearly'])
+
+    with preview_col.container(border=True,height=400):
+        st.subheader('Preview')
+        if title and description and t_type:
+            st.write(f':grey[Title:] ***{title}***')
+            st.write(f':grey[Description]: ***{description}***')
+            st.write(f":grey[Priority:] ***{'important' if priority else 'not important'}***")
+            st.write(f":grey[Urgency:] ***{'important' if urgent else 'not important'}***")
+            st.write(f':grey[Task Type]: ***{t_type}***')
             
+        else:
+            st.text("--Fill all inputs to get preview--")
+        
+    if preview_col.button("submit",use_container_width=True,type='primary'):
+        t = Task(title,description,priority,urgent,t_type)
+        result : dict = create_task(task=t.task,description=t.description,
+                                    priority=t.priority,urgent=t.urgent,
+                                    t_type=t.t_type,status=t.status,
+                                    task_date=t.task_date)
+       

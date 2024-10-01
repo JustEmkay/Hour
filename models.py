@@ -20,19 +20,21 @@ def date_to_tstamp(slctd_date) -> int:
     return time_stamp 
 
 
-class Todo:
+class Task:
     
-    def __init__(self, task:str, priority : bool , urgent:bool,
-                 status:bool = None ,task_date : int = None) -> None:
+    def __init__(self, task:str, description:str, priority:bool, urgent:bool, t_type:str,
+                 status:bool = None, task_date:int = None) -> None:
          
          self.task = task
+         self.description = description
          self.priority = priority
          self.urgent = urgent
+         self.t_type = t_type
          self.status = status if status is not None else False
          self.task_date = task_date if task_date is not None else int(today_stamp)
          
     def __str__(self) -> str:
-          return f'{datetime.fromtimestamp(self.task_date).strftime("%d-%m-%Y")} : {self.task} | priority:{self.priority} | usrgent:{self.urgent} | status: {self.status}'
+          return f' created on: {datetime.fromtimestamp(self.task_date).strftime("%d-%m-%Y")} \n task: {self.task} \n description: {self.description} \n priority: {self.priority} \n urgent: {self.urgent} \n type: {self.t_type} \n status: {self.status}'
       
 
     def task_toDict(self) -> dict:

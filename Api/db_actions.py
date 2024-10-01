@@ -4,18 +4,24 @@ conn = sqlite3.connect("../database/manager.db",check_same_thread=False)
 conn.isolation_level = None
 cursor = conn.cursor()
 
+#---------------------task_data---------------------
+
 def create_taskdata() -> None:
     try:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS task_data(
                 tid INTEGER     PRIMARY KEY AUTOINCREMENT,
-                uid INT     NOT NULL,
-                created_date INT    NOT NULL,
-                task CHAR(40)   NOT NULL,
+                uid CHAR(40)     NOT NULL,
+                task CHAR(25)   NOT NULL,
+                description CHAR(50)   NOT NULL,
+                task_type CHAR(10)   NOT NULL,
                 priority NUMERIC    NOT NULL,
                 urgent NUMERIC  NOT NULL,
-                status NUMERIC  NOT NULL DEFAULT(0) 
+                status NUMERIC  NOT NULL DEFAULT(0),
+                created_date INT    NOT NULL,
+                FOREIGN KEY (uid)
+                    REFERENCES users_data (uid)
             )
             """
         )
@@ -29,16 +35,19 @@ def insert_task(**kwargs) -> bool:
         uid (int): userid.
         date (int): created_date/task_date.
         task (str): task.
+        description (str): description.
+        task_type (str): task_type['once','daily','monthly','yearly']
         priority (bool): priority of task.  
         urgent (bool): urgency of task.  
     """
+    create_taskdata()
     
     kwargs['priority'] = 1 if kwargs['priority'] else 0
     kwargs['urgent'] = 1 if kwargs['urgent'] else 0
      
     try:
-        cursor.execute("INSERT INTO task_data(uid,created_date,task,priority,urgent) \
-                values(?,?,?,?,?)",(kwargs['uid'],kwargs['created_date'],kwargs['task'],kwargs['priority'],kwargs['urgent']))
+        cursor.execute("INSERT INTO task_data(uid,created_date,task,description,task_type,priority,urgent) \
+                values(?,?,?,?,?,?,?)",(kwargs['uid'],kwargs['created_date'],kwargs['task'],kwargs['description'],kwargs['task_type'],kwargs['priority'],kwargs['urgent']))
         conn.commit()
         return True
         
@@ -84,6 +93,25 @@ def specific_task(**kwargs) -> tuple:
     except Exception as e:
         print("Error:",e)
         
+        return None
+             
+def get_today_task(**kwargs) -> tuple:
+    """
+    Get todays task only.
+    parameter:
+        uid (str): userid.
+        task_type (str): task type ['once','daily','monthly','yearly'].
+        created_date (int): timestamp of current day.
+    """
+    
+    try:
+        cursor.execute('SELECT tid,task,description,task_type,priority,urgent,status FROM task_data WHERE uid = ? and created_date =? and task_type = "once" or task_type ="daily" ',
+                       (kwargs['uid'],kwargs['created_date'],))
+        result : list[tuple] = cursor.fetchone()
+        return result
+                
+    except Exception as e:
+        print("Error:",e)
         return None
     
 def update_task(**kwargs) -> bool:
@@ -162,6 +190,8 @@ def dbdata_to_dict(**kwargs) -> dict:
     
     return tasks_data
 
+#---------------------user_data---------------------
+
 def create_users() -> None:
     try:
         cursor.execute(
@@ -180,11 +210,7 @@ def create_users() -> None:
         
     except Exception as e :
         print("Error:",e)
-
-
-
-#---------------------user_data---------------------
-    
+ 
 def insert_user(*args) -> bool:
     
     try:
@@ -224,21 +250,20 @@ def check_user(**kwargs) -> dict:
             
 def get_userdata(**kwargs) -> dict:
         
-    cursor.execute("SELECT uid,username,password,dob FROM users_data WHERE username = ? OR email = ?",(kwargs['userinput'],kwargs['userinput'],))
+    cursor.execute("SELECT uid,username,password,dob FROM users_data WHERE username = ? OR email = ?",
+                   (kwargs['userinput'],kwargs['userinput'],))
     result = cursor.fetchone()
-    
     return result    
     
-    
-    
-
+   
 
 # if __name__ == '__name__':
+# create_taskdata()
 # TEST-CASES    
     # create_users()    
 # create_database()
 # dbdata_to_dict(uid=123)
-# insert_task(uid=123, created_date=1456132541,task='go for a walk4',priority=0,urgent=1)
+# insert_task(uid=123, created_date=1456132541,task='go for a walk4',description='dadadawd dawdacsd',priority=0,urgent=1)
 # update_task(tid=1,uid=123,task='go kill vasu',priority=True,urgent=True)
 # delete_task(tid=123)
 # specific_task(tid = 4,uid = 123)

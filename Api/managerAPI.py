@@ -108,8 +108,66 @@ async def create_task(uid : str ,tdata : taskData):
             'status' : False,
             'message' : 'Failed to create task.'
         }
+
+def unpack_list_to_dict(data:list[tuple], created_date:int, dict_keys:list[str]) -> dict:
+
+    temp_tasks : dict = {}
+    temp_task_list : list[dict] = []
+    temp_task : dict = {}
+
+    for task in data:
+        for idx,col in enumerate(task):
+            temp_task.update(
+                {
+                    dict_keys[idx] : col
+                }
+                ) 
+        print("temp_task:",temp_task) 
+        temp_task_list.append(temp_task)
+        temp_task = {}
+        
+    if created_date not in temp_tasks:
+        temp_tasks.update({
+            created_date : temp_task_list 
+        })
     
+    
+    return temp_tasks
+  
 @app.get("/task/today/{uid}/{created_date}")
 async def todays_task(uid:str, created_date:int):
+       
     result = get_today_task(uid=uid,created_date=created_date)
+    if len(result) >= 1:
+        
+        return {
+            'status' : True,
+            'message' : f'found {len(result)} tasks',
+            'data' : unpack_list_to_dict(result,created_date,
+                                         ['tid','task',
+                                          'description','task_type',
+                                          'priority','urgent','status'])
+        }
+    return {
+    'status' : False,
+    'message' : f'empty task list',
+}
+    
+@app.put("/update/{uid}/{tid}")
+async def update_task_status(uid : str , tid : int, opt : str, opt_val: bool):
+    print(f"uid:{uid}\ntid:{tid}\noption:{opt}\noption val:{opt_val}")
+    if update_task(uid=str(uid),tid=tid,opt=opt,opt_val=opt_val):
+        return {
+            'status' : True,
+            'message' : "updated task successfully"
+        }
+    return {
+        'status' : False,
+        'message' : "updatation failed"
+    }
+    
+@app.get("/task/type/{uid}")
+async def get_type_tasklist(uid:str,t_type:str):
+    result = get_list_type(uid=uid, t_type=t_type)
+    
     

@@ -1,9 +1,7 @@
 import streamlit as st
-import time,requests
+import time
 from datetime import datetime
-from forms import create_task_dialog
-from Home import API_URL
-
+from forms import create_task_dialog,delete_task_dialog
 
 
 def task_page() -> None:
@@ -23,7 +21,9 @@ def task_page() -> None:
         alert_col, bttn_col1, bttn_col2 = st.columns([2,1,1])
         
         alert_col.info(f"Today: {datetime.today().date()}")
-        bttn_col1.button('delete',use_container_width=True)
+        if bttn_col1.button('delete',use_container_width=True):
+            delete_task_dialog()
+        
         if bttn_col2.button('create',use_container_width=True):
             create_task_dialog()    
         

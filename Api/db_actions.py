@@ -29,6 +29,29 @@ def create_taskdata() -> None:
     except Exception as e :
         print("Error:",e)
 
+def create_task_types() -> None:
+    # try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS task_type_data(
+                typeID INTEGER  PRIMARY KEY AUTOINCREMENT, 
+                uid CHAR(40)     NOT NULL,
+                task_title CHAR(25) NOT NULL,
+                tas_description CHAR(45) NOT NULL,
+                task_type CHAR(15) NOT NULL,
+                priority NUMERIC    NOT NULL,
+                urgent NUMERIC  NOT NULL,
+                created_date INT    NOT NULL,
+                FOREIGN KEY (uid)
+                    REFERENCES users_data (uid)
+            )
+            """
+        )
+        
+    # except Exception as e :
+    #     print("Error:",e)
+
+
 def insert_task(**kwargs) -> bool:
     """
     parameter:
@@ -103,11 +126,10 @@ def get_today_task(**kwargs) -> tuple:
         task_type (str): task type ['once','daily','monthly','yearly'].
         created_date (int): timestamp of current day.
     """
-    
     try:
-        cursor.execute('SELECT tid,task,description,task_type,priority,urgent,status FROM task_data WHERE uid = ? and created_date =? and task_type = "once" or task_type ="daily" ',
+        cursor.execute('SELECT tid,task,description,task_type,priority,urgent,status FROM task_data WHERE uid = ? AND created_date =? AND (task_type="once" OR task_type="daily") ',
                        (kwargs['uid'],kwargs['created_date'],))
-        result : list[tuple] = cursor.fetchone()
+        result : list[tuple] = cursor.fetchall()
         return result
                 
     except Exception as e:
@@ -115,6 +137,13 @@ def get_today_task(**kwargs) -> tuple:
         return None
     
 def update_task(**kwargs) -> bool:
+    
+    kwargs.update({
+        kwargs['opt'] : kwargs['opt_val']
+    })
+    
+    kwargs.pop("opt")
+    kwargs.pop("opt_val")
     
     if 'priority' in kwargs:
         kwargs['priority'] = 1 if kwargs['priority'] else 0
@@ -135,7 +164,8 @@ def update_task(**kwargs) -> bool:
             temp_str = temp_str + ","
         update = update + temp_str
         
-    condition = f"tid={kwargs['tid']} and uid={kwargs['uid']}"
+    condition = f"tid={kwargs['tid']} and uid='{kwargs['uid']}'"
+    
     
     try:
         cursor.execute(f'UPDATE task_data SET {update} WHERE {condition}')
@@ -156,8 +186,6 @@ def dbdata_to_dict(**kwargs) -> dict:
         if data[2] not in all_timestamps:
             all_timestamps.append(data[2])
 
-
-    print('all timestamp:',all_timestamps)
     
     for timestamp in all_timestamps:
         for data in dbdata:
@@ -190,6 +218,11 @@ def dbdata_to_dict(**kwargs) -> dict:
     
     return tasks_data
 
+def get_list_type(**kwargs) -> dict:
+    if kwargs['t_type'] == "once":
+        statement = "SELECT tid,task,"
+    
+
 #---------------------user_data---------------------
 
 def create_users() -> None:
@@ -202,7 +235,7 @@ def create_users() -> None:
                 email CHAR(20)    NOT NULL,
                 dob INTEGER  NOT NULL,
                 password CHAR(20)  NOT NULL, 
-                otp CHAR(20)    DEFAULT None, 
+                otp CHAR(20)    DEFAULT None,
                 created_date INT    NOT NULL
             )
             """
@@ -256,7 +289,7 @@ def get_userdata(**kwargs) -> dict:
     return result    
     
    
-
+# create_task_types()
 # if __name__ == '__name__':
 # create_taskdata()
 # TEST-CASES    

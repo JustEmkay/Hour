@@ -1,10 +1,9 @@
 import streamlit as st 
 from datetime import datetime
-from forms import *
+from forms import login_form
 from mainpage import *
 import streamlit.components.v1 as components
 
-API_URL = 'http://127.0.0.1:8000/'
 
 if 'auth' not in st.session_state :
     st.session_state.auth = {
@@ -13,6 +12,10 @@ if 'auth' not in st.session_state :
         'userid' : None,
         'dob' : None
     }
+    if 'task_data' not in st.session_state :
+        st.session_state.task_data = {}
+    
+    
 
 def main() -> None:
     

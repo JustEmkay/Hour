@@ -2,7 +2,8 @@ import streamlit as st
 from datetime import datetime
 import re,requests,time
 from models import UserRegister,Task
-from Home import API_URL
+from creds import API_URL
+from http_req import *
 
 def age_calc(dob : datetime.date ) -> dict:
     today : datetime.date = datetime.today()
@@ -13,18 +14,6 @@ def validate_email(email):
         return True  
     return False
 
-def create_account(**userdata) -> dict:
-    req = requests.post(API_URL + "register",json=userdata)
-    resp = req.status_code
-    if resp == 200:
-        return req.json()
-    
-def validate_user(**userinputs) -> None:
-    req = requests.get(API_URL + "login",json=userinputs)
-    resp = req.status_code
-    if resp == 200:
-        return req.json()
-    
 
 @st.dialog("Register Form")
 def register_form() -> None:
@@ -114,25 +103,10 @@ def login_form() -> dict:
         else:
             alert.warning(val_response['message'],icon='🤦‍♂️')
             
-
-def create_task(**task_data) -> dict:
-    req = requests.post(API_URL + f"task/create/{st.session_state.auth['userid']}/",
-                        json=task_data)
-    res = req.status_code
-    if res == 200:
-        return req.json()
-    else:
-        return {
-            'status' : False,
-            'message' : 'Connecting to server failed'
-        }
-       
 @st.dialog('create task',width='large')
 def create_task_dialog():
 
-    preview = st.empty()
     edit_col, preview_col  = st.columns(2)
-    
     
     with edit_col.container():
     
@@ -143,7 +117,7 @@ def create_task_dialog():
         urgent = u_col.radio("Task Urgency",[True,False])
         t_type = st.selectbox('select task type:',['once','daily','monthly','yearly'])
 
-    with preview_col.container(border=True,height=400):
+    with preview_col.container(border=True,height=300):
         st.subheader('Preview')
         if title and description and t_type:
             st.write(f':grey[Title:] ***{title}***')
@@ -155,10 +129,58 @@ def create_task_dialog():
         else:
             st.text("--Fill all inputs to get preview--")
         
+    alert = preview_col.empty()
+    
     if preview_col.button("submit",use_container_width=True,type='primary'):
         t = Task(title,description,priority,urgent,t_type)
-        result : dict = create_task(task=t.task,description=t.description,
+        result : dict = create_task(st.session_state.auth['userid'],task=t.task,description=t.description,
                                     priority=t.priority,urgent=t.urgent,
                                     t_type=t.t_type,status=t.status,
                                     task_date=t.task_date)
-       
+        
+        if result['status']:
+            alert.success(result['message'])
+            time.sleep(0.8)
+            st.session_state.todays_task=load_todays_task()
+            st.rerun()
+
+@st.dialog('Delete task',width='small')
+def delete_task_dialog():
+    
+    
+    
+    t_type = st.selectbox('select task type',
+                           ['once','daily','monthly','yearly'],
+                           index=None)
+
+    
+    with st.container(height=300):
+        if t_type:
+            get_type_tasklist(st.session_state.auth['userid'],t_type)
+            
+ 
+def task_view() -> None:
+    
+    for idx,task in enumerate(st.session_state.task_data[f'{today_timestamp}'],start=1):
+        if not task['status']:
+            if st.checkbox(f"{task['task']}",value=False,key=task['tid']):
+                update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',True)
+                if update_result['status']:
+                    st.toast(f":green=background[{update_result['message']}]")
+                    result = load_todays_task(st.session_state.auth['userid'])
+                    st.session_state.task_data = result['data']
+                    time.sleep(2)
+                    st.rerun()
+                if not update_result['status']:
+                    st.toast(f":red=background[{update_result['message']}]")
+        else:
+            if not st.checkbox(f"~~:grey[{task['task']}]~~",value=True,key=task['tid']):
+                update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',False)
+                if update_result['status']:
+                    st.toast(f":green=background[{update_result['message']}]")
+                    result = load_todays_task(st.session_state.auth['userid'])
+                    st.session_state.task_data = result['data']
+                    time.sleep(2)
+                    st.rerun()
+                if not update_result['status']:
+                    st.toast(f":red=background[{update_result['message']}]")

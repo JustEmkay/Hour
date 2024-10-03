@@ -40,6 +40,13 @@ async def test():
         'author' : 'emkay' 
     }    
 
+@app.get("/connection")
+async def testing_db():
+    
+    result = startup()
+    
+    return result
+       
 @app.post("/register")
 async def register_user(userdata : UserRegister):
     
@@ -136,10 +143,11 @@ def unpack_list_to_dict(data:list[tuple], created_date:int, dict_keys:list[str])
   
 @app.get("/task/today/{uid}/{created_date}")
 async def todays_task(uid:str, created_date:int):
+    
+    
        
     result = get_today_task(uid=uid,created_date=created_date)
     if len(result) >= 1:
-        
         return {
             'status' : True,
             'message' : f'found {len(result)} tasks',
@@ -148,9 +156,12 @@ async def todays_task(uid:str, created_date:int):
                                           'description','task_type',
                                           'priority','urgent','status'])
         }
+          
+        
     return {
     'status' : False,
     'message' : f'empty task list',
+    'data' : {}
 }
     
 @app.put("/update/{uid}/{tid}")

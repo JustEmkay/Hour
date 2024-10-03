@@ -4,8 +4,6 @@ conn = sqlite3.connect("../database/manager.db",check_same_thread=False)
 conn.isolation_level = None
 cursor = conn.cursor()
 
-#---------------------task_data---------------------
-
 def create_taskdata() -> None:
     try:
         cursor.execute(
@@ -30,14 +28,14 @@ def create_taskdata() -> None:
         print("Error:",e)
 
 def create_task_types() -> None:
-    # try:
+    try:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS task_type_data(
                 typeID INTEGER  PRIMARY KEY AUTOINCREMENT, 
                 uid CHAR(40)     NOT NULL,
                 task_title CHAR(25) NOT NULL,
-                tas_description CHAR(45) NOT NULL,
+                task_description CHAR(45) NOT NULL,
                 task_type CHAR(15) NOT NULL,
                 priority NUMERIC    NOT NULL,
                 urgent NUMERIC  NOT NULL,
@@ -48,9 +46,68 @@ def create_task_types() -> None:
             """
         )
         
-    # except Exception as e :
-    #     print("Error:",e)
+    except Exception as e :
+        print("Error:",e)
 
+def create_users() -> None:
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users_data(
+                uid CHAR(40)     PRIMARY KEY,
+                username CHAR(10)   NOT NULL,
+                email CHAR(20)    NOT NULL,
+                dob INTEGER  NOT NULL,
+                password CHAR(20)  NOT NULL, 
+                otp CHAR(20)    DEFAULT None,
+                created_date INT    NOT NULL
+            )
+            """
+        )
+        
+    except Exception as e :
+        print("Error:",e)
+
+#---------------------task_list_data---------------------
+
+def check_users_predefine(**kwargs) -> None:
+    
+    """
+    uid (str) : userid.
+    created_data (int): created_data.
+    
+    """
+    
+    try:
+        cursor.execute("SELECT 1 FROM task_type_data WHERE uid = ? and t_type = 'daily",
+                       (kwargs['uid'],))
+        if cursor.fetchall():
+            
+            cursor.execute("SELECT uid,task_title,task_description, \
+                           task_type,priority,urgent from task_type_data \
+                           WHERE uid = ? AND task_type = 'daily' ",
+                           (kwargs['uid'],))
+            
+            result = cursor.fetchall()
+            
+            status = 0
+            
+            for tt in result:
+                tt + status + kwargs['created_date']
+            # [ (uid,task,description,t_type,priority,urgent), 
+            # (uid,task,description,t_type,priority,urgent), ]
+            cursor.executemany("INSERT INTO task_data(uid,task,description,task_type,priority,urgent,created_date) \
+                values(?,?,?,?,?,?,?)",result)
+                
+            return True
+        
+        return False
+                 
+        
+    except Exception as e :
+        print("Error:",e)
+    
+#---------------------task_data---------------------
 
 def insert_task(**kwargs) -> bool:
     """
@@ -69,6 +126,18 @@ def insert_task(**kwargs) -> bool:
     kwargs['urgent'] = 1 if kwargs['urgent'] else 0
      
     try:
+      
+        cursor.execute("SELECT 1 FROM task_type_data WHERE uid = ?  \
+                       and task_title = ? and task_description = ? and task_type = 'daily' ",
+                       (kwargs['uid'],kwargs['task'],kwargs['description'],))  
+        
+        result = cursor.fetchall()
+        if not result:
+            cursor.execute(" INSERT INTO task_type_data(uid,task_title, \
+                           task_description,task_type,priority,urgent,created_date) values(?,?,?,?,?,?,?)",
+                           (kwargs['uid'],kwargs['task'],kwargs['description'],kwargs['task_type'],
+                            kwargs['priority'],kwargs['urgent'],kwargs['created_date'],))
+        
         cursor.execute("INSERT INTO task_data(uid,created_date,task,description,task_type,priority,urgent) \
                 values(?,?,?,?,?,?,?)",(kwargs['uid'],kwargs['created_date'],kwargs['task'],kwargs['description'],kwargs['task_type'],kwargs['priority'],kwargs['urgent']))
         conn.commit()
@@ -224,25 +293,6 @@ def get_list_type(**kwargs) -> dict:
     
 
 #---------------------user_data---------------------
-
-def create_users() -> None:
-    try:
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users_data(
-                uid CHAR(40)     PRIMARY KEY,
-                username CHAR(10)   NOT NULL,
-                email CHAR(20)    NOT NULL,
-                dob INTEGER  NOT NULL,
-                password CHAR(20)  NOT NULL, 
-                otp CHAR(20)    DEFAULT None,
-                created_date INT    NOT NULL
-            )
-            """
-        )
-        
-    except Exception as e :
-        print("Error:",e)
  
 def insert_user(*args) -> bool:
     
@@ -287,7 +337,28 @@ def get_userdata(**kwargs) -> dict:
                    (kwargs['userinput'],kwargs['userinput'],))
     result = cursor.fetchone()
     return result    
+
+
+#---------------------startup---------------------
+ 
+def startup() -> None:
     
+    try:
+        if cursor:
+            create_users()
+            create_taskdata()
+            create_task_types()
+        return {
+            'status' : True,
+            'message' : 'Connected'
+        }
+    except Exception as e:
+        return {
+            'status' : False,
+            'mesaage' : e
+        }
+        
+   
    
 # create_task_types()
 # if __name__ == '__name__':

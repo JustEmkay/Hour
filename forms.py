@@ -141,7 +141,7 @@ def create_task_dialog():
         if result['status']:
             alert.success(result['message'])
             time.sleep(0.8)
-            st.session_state.todays_task=load_todays_task()
+            st.session_state.todays_task=load_todays_task(st.session_state.auth['userid'])
             st.rerun()
 
 @st.dialog('Delete task',width='small')
@@ -166,21 +166,21 @@ def task_view() -> None:
             if st.checkbox(f"{task['task']}",value=False,key=task['tid']):
                 update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',True)
                 if update_result['status']:
-                    st.toast(f":green=background[{update_result['message']}]")
+                    st.toast(f":green-background[{update_result['message']}]")
                     result = load_todays_task(st.session_state.auth['userid'])
                     st.session_state.task_data = result['data']
                     time.sleep(2)
                     st.rerun()
                 if not update_result['status']:
-                    st.toast(f":red=background[{update_result['message']}]")
+                    st.toast(f":red-background[{update_result['message']}]")
         else:
             if not st.checkbox(f"~~:grey[{task['task']}]~~",value=True,key=task['tid']):
                 update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',False)
                 if update_result['status']:
-                    st.toast(f":green=background[{update_result['message']}]")
+                    st.toast(f":green-background[{update_result['message']}]")
                     result = load_todays_task(st.session_state.auth['userid'])
                     st.session_state.task_data = result['data']
                     time.sleep(2)
                     st.rerun()
                 if not update_result['status']:
-                    st.toast(f":red=background[{update_result['message']}]")
+                    st.toast(f":red-background[{update_result['message']}]")

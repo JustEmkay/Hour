@@ -21,16 +21,17 @@ def show_clock() -> None:
     col1, col2 = st.columns([6,4])
     with col1.container(border=True,height=500):
         st.subheader("Today's tasks⤵️",anchor=False)
-        
-        for idx,col in enumerate(st.session_state.task_data[str(today_timestamp)],start=1):
-            if col['status']:
-                with st.expander(f":grey[{idx}.{col['task']}]"):
-                    st.caption(f"Description: :blue[{col['description']}]")
-                    
-            if not col['status']:
-                with st.expander(f":red[{idx}. {col['task']}]"):
-                    st.caption(f"Description: :blue[{col['description']}]")
-            
+        if st.session_state.task_data:
+            for idx,col in enumerate(st.session_state.task_data[str(today_timestamp)],start=1):
+                if col['status']:
+                    with st.expander(f":grey[{idx}.{col['task']}]"):
+                        st.caption(f"Description: :blue[{col['description']}]")
+                        
+                if not col['status']:
+                    with st.expander(f":red[{idx}. {col['task']}]"):
+                        st.caption(f"Description: :blue[{col['description']}]")
+        else:
+            st.text('empty task')
                     
                 
     with col2.container(border=True,height=240):

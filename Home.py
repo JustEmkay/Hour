@@ -16,12 +16,13 @@ if 'auth' not in st.session_state :
     if 'task_data' not in st.session_state :
         st.session_state.task_data = {}
     
-    
+@st.cache_data
+def on_start_connection():  
+    test_connection()
 
 def main() -> None:
     
-    
-    test_connection()
+    on_start_connection()
     
     if not st.session_state.auth['authorization'] and \
     not st.session_state.auth['userid']:

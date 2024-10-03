@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 from forms import login_form
 from mainpage import *
+from http_req import test_connection
 import streamlit.components.v1 as components
 
 
@@ -18,6 +19,9 @@ if 'auth' not in st.session_state :
     
 
 def main() -> None:
+    
+    
+    test_connection()
     
     if not st.session_state.auth['authorization'] and \
     not st.session_state.auth['userid']:

@@ -5,6 +5,12 @@ from datetime import datetime
 today_timestamp : int = int(datetime(datetime.now().year,datetime.now().month,
                                      datetime.now().day,0,0,0).timestamp())
 
+def test_connection() -> dict:
+    req = requests.get(API_URL + "connection")
+    res = req.status_code
+    if res == 200:
+        return req.json()
+
 def create_account(**userdata) -> dict:
     req = requests.post(API_URL + "register",json=userdata)
     resp = req.status_code

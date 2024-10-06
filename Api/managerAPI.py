@@ -44,7 +44,7 @@ async def test():
 async def testing_db():
     
     result = startup()
-    
+    print(result['message'])
     return result
        
 @app.post("/register")
@@ -57,7 +57,7 @@ async def register_user(userdata : UserRegister):
             'status' : False,
             'message' : 'Email already in use , try recovering password.'
         }
-    elif result['username']:
+    if result['username']:
         return {
             'status' : False,
             'message' : 'username already in use.Type new username'
@@ -144,18 +144,18 @@ def unpack_list_to_dict(data:list[tuple], created_date:int, dict_keys:list[str])
 @app.get("/task/today/{uid}/{created_date}")
 async def todays_task(uid:str, created_date:int):
     
-    
+    if check_users_predefine(uid=uid,created_date=created_date):
        
-    result = get_today_task(uid=uid,created_date=created_date)
-    if len(result) >= 1:
-        return {
-            'status' : True,
-            'message' : f'found {len(result)} tasks',
-            'data' : unpack_list_to_dict(result,created_date,
-                                         ['tid','task',
-                                          'description','task_type',
-                                          'priority','urgent','status'])
-        }
+        result = get_today_task(uid=uid,created_date=created_date)
+        if len(result) >= 1:
+            return {
+                'status' : True,
+                'message' : f'found {len(result)} tasks',
+                'data' : unpack_list_to_dict(result,created_date,
+                                            ['tid','task',
+                                            'description','task_type',
+                                            'priority','urgent','status'])
+            }
           
         
     return {

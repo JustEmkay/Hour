@@ -41,19 +41,24 @@ def register_form() -> None:
         password : str = pas_col.text_input("create a password:",type='password')
         repassword : str = repas_col.text_input("re-enter password:",type='password')
         pswd_alert = st.empty()
+           
+           
+        reg_bttn_status : bool = True
+        reg_bttn_help : str = 'Fill all forms please!'
             
         if email and not validate_email(email):
             email_alert.warning('Email entered not valid',icon='⚠')
         
         if password and repassword and (password != repassword):
             pswd_alert.warning('Both are Note equal .Re-enter the password',icon='⚠')
-        
-        if username and email and (age > 8) and (password == repassword):
-            reg_bttn_status : bool = False
-            reg_bttn_help : str = 'Click to register your account'
-        else:
-            reg_bttn_status : bool = True
-            reg_bttn_help : str = 'Fill all forms please!'
+    
+        if username and email and (age > 8): 
+            if password and repassword:
+                reg_bttn_status : bool = False
+                reg_bttn_help : str = 'Click to register your account'
+    # else:
+        #     reg_bttn_status : bool = True
+        #     reg_bttn_help : str = 'Fill all forms please!'
 
         if st.button('Register user',use_container_width=True,
                      type='primary',disabled=reg_bttn_status,
@@ -141,7 +146,8 @@ def create_task_dialog():
         if result['status']:
             alert.success(result['message'])
             time.sleep(0.8)
-            st.session_state.todays_task=load_todays_task(st.session_state.auth['userid'])
+            result = load_todays_task(st.session_state.auth['userid'])
+            st.session_state.task_data = result['data']
             st.rerun()
 
 @st.dialog('Delete task',width='small')
@@ -158,9 +164,7 @@ def delete_task_dialog():
         if t_type:
             get_type_tasklist(st.session_state.auth['userid'],t_type)
             
- 
 def task_view() -> None:
-    
     for idx,task in enumerate(st.session_state.task_data[f'{today_timestamp}'],start=1):
         if not task['status']:
             if st.checkbox(f"{task['task']}",value=False,key=task['tid']):
@@ -173,7 +177,7 @@ def task_view() -> None:
                     st.rerun()
                 if not update_result['status']:
                     st.toast(f":red-background[{update_result['message']}]")
-        else:
+        if task['status']:
             if not st.checkbox(f"~~:grey[{task['task']}]~~",value=True,key=task['tid']):
                 update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',False)
                 if update_result['status']:

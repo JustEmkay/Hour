@@ -30,6 +30,8 @@ def logout_menu() -> None:
         'userid' : None,
         'dob' : None
     }
+        st.session_state.task_data = {}
+        
         st.rerun()
     
 if __name__ == '__main__':

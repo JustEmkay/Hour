@@ -11,6 +11,7 @@ def create_taskdata() -> None:
             CREATE TABLE IF NOT EXISTS task_data(
                 tid INTEGER     PRIMARY KEY AUTOINCREMENT,
                 uid CHAR(40)     NOT NULL,
+                typeID INTEGER   NOT NULL,
                 task CHAR(25)   NOT NULL,
                 description CHAR(50)   NOT NULL,
                 task_type CHAR(10)   NOT NULL,
@@ -19,13 +20,15 @@ def create_taskdata() -> None:
                 status NUMERIC  NOT NULL DEFAULT(0),
                 created_date INT    NOT NULL,
                 FOREIGN KEY (uid)
-                    REFERENCES users_data (uid)
+                    REFERENCES users_data (uid),
+                FOREIGN KEY (typeID)
+                    REFERENCES task_type_data (typeID)
             )
             """
         )
         
     except Exception as e :
-        print("Error:",e)
+        print("Error of create_taskdata() :",e)
 
 def create_task_types() -> None:
     try:
@@ -34,7 +37,7 @@ def create_task_types() -> None:
             CREATE TABLE IF NOT EXISTS task_type_data(
                 typeID INTEGER  PRIMARY KEY AUTOINCREMENT, 
                 uid CHAR(40)     NOT NULL,
-                task_title CHAR(25) NOT NULL,
+                task_title CHAR(25)     NOT NULL,
                 task_description CHAR(45) NOT NULL,
                 task_type CHAR(15) NOT NULL,
                 priority NUMERIC    NOT NULL,
@@ -47,7 +50,7 @@ def create_task_types() -> None:
         )
         
     except Exception as e :
-        print("Error:",e)
+        print("Error create_task_types():",e)
 
 def create_users() -> None:
     try:
@@ -66,7 +69,7 @@ def create_users() -> None:
         )
         
     except Exception as e :
-        print("Error:",e)
+        print("Error of create_users()",e)
 
 #---------------------task_list_data---------------------
 
@@ -79,25 +82,41 @@ def check_users_predefine(**kwargs) -> None:
     """
     
     try:
-        cursor.execute("SELECT 1 FROM task_type_data WHERE uid = ? and t_type = 'daily",
-                       (kwargs['uid'],))
-        if cursor.fetchall():
-            
-            cursor.execute("SELECT uid,task_title,task_description, \
-                           task_type,priority,urgent from task_type_data \
-                           WHERE uid = ? AND task_type = 'daily' ",
-                           (kwargs['uid'],))
+        cursor.execute("SELECT typeID FROM task_type_data WHERE uid = ? and task_type = 'daily' ",
+                        (kwargs['uid'],))
+        get_typeIDs = cursor.fetchall()
+        
+        cursor.execute("SELECT typeID FROM task_data WHERE uid = ? and task_type = 'daily' and created_date = ? ",
+                        (kwargs['uid'],kwargs['created_date'],))
+        get_task_typeIDs = cursor.fetchall()
+        
+        get_typeIDs = [ x for x in get_typeIDs]
+        get_task_typeIDs = [x for x in get_task_typeIDs]
+        
+        deff_typeIDs : list = [ x[0] for x in get_typeIDs if x not in get_task_typeIDs ]
+        # deff_typeIDs : list = [x[0] for x in deff_typeIDs]
+        
+        # print(f"get_typeIDs:{get_typeIDs}\nget_task_typeIDs:{get_task_typeIDs}")
+        
+        if get_typeIDs:    
+            print(f"\ndeff:{deff_typeIDs}")
+            cursor.execute("SELECT uid,typeID,task_title,task_description, \
+                            task_type,priority,urgent from task_type_data \
+                            WHERE uid = ? AND task_type = 'daily' ",
+                            (kwargs['uid'],))
             
             result = cursor.fetchall()
             
-            status = 0
-            
+            temp_Result =  [] 
             for tt in result:
-                tt + status + kwargs['created_date']
-            # [ (uid,task,description,t_type,priority,urgent), 
-            # (uid,task,description,t_type,priority,urgent), ]
-            cursor.executemany("INSERT INTO task_data(uid,task,description,task_type,priority,urgent,created_date) \
-                values(?,?,?,?,?,?,?)",result)
+                if tt[1] in deff_typeIDs:
+                    temp_tt = list(tt) + [kwargs['created_date']]
+                    temp_Result.append(tuple(temp_tt))
+                
+            print("temp:",temp_Result)    
+
+            cursor.executemany("INSERT INTO task_data(uid,typeID,task,description,task_type,priority,urgent,created_date) \
+                values(?,?,?,?,?,?,?,?)",temp_Result)
                 
             return True
         
@@ -105,7 +124,7 @@ def check_users_predefine(**kwargs) -> None:
                  
         
     except Exception as e :
-        print("Error:",e)
+        print("Error of check_users_predefine():",e)
     
 #---------------------task_data---------------------
 
@@ -126,25 +145,32 @@ def insert_task(**kwargs) -> bool:
     kwargs['urgent'] = 1 if kwargs['urgent'] else 0
      
     try:
-      
         cursor.execute("SELECT 1 FROM task_type_data WHERE uid = ?  \
-                       and task_title = ? and task_description = ? and task_type = 'daily' ",
-                       (kwargs['uid'],kwargs['task'],kwargs['description'],))  
+                        AND task_title = ? AND task_description = ? AND (task_type = 'daily' OR task_type = 'monthly' OR task_type = 'yearly') ",
+                        (kwargs['uid'],kwargs['task'],kwargs['description'],))  
         
         result = cursor.fetchall()
         if not result:
             cursor.execute(" INSERT INTO task_type_data(uid,task_title, \
-                           task_description,task_type,priority,urgent,created_date) values(?,?,?,?,?,?,?)",
-                           (kwargs['uid'],kwargs['task'],kwargs['description'],kwargs['task_type'],
+                            task_description,task_type,priority,urgent,created_date) values(?,?,?,?,?,?,?)",
+                            (kwargs['uid'],kwargs['task'],kwargs['description'],kwargs['task_type'],
                             kwargs['priority'],kwargs['urgent'],kwargs['created_date'],))
-        
-        cursor.execute("INSERT INTO task_data(uid,created_date,task,description,task_type,priority,urgent) \
-                values(?,?,?,?,?,?,?)",(kwargs['uid'],kwargs['created_date'],kwargs['task'],kwargs['description'],kwargs['task_type'],kwargs['priority'],kwargs['urgent']))
+            
+            cursor.execute("SELECT typeID FROM task_type_data WHERE uid = ?  \
+                        AND task_title = ? AND task_description = ? AND task_type = ? ",
+                        (kwargs['uid'],kwargs['task'],kwargs['description'],kwargs['task_type'],)) 
+            
+            get_typeID = cursor.fetchone()
+            print("get_typeID:",get_typeID)
+            
+        cursor.execute("INSERT INTO task_data(uid,created_date,task,description,task_type,priority,urgent,typeID) \
+                values(?,?,?,?,?,?,?,?)",(kwargs['uid'],kwargs['created_date'],kwargs['task'],kwargs['description'],
+                                          kwargs['task_type'],kwargs['priority'],kwargs['urgent'],get_typeID[0]))
         conn.commit()
         return True
         
     except Exception as e :
-        print("Error:",e)
+        print("Error at insert_task() :",e)
         return False
 
 def delete_task(**kwargs) -> bool:
@@ -346,8 +372,8 @@ def startup() -> None:
     try:
         if cursor:
             create_users()
-            create_taskdata()
             create_task_types()
+            create_taskdata()
         return {
             'status' : True,
             'message' : 'Connected'
@@ -355,17 +381,27 @@ def startup() -> None:
     except Exception as e:
         return {
             'status' : False,
-            'mesaage' : e
+            'mesaage' : f'Error: {e}'
         }
         
+  
+  
+# cursor.execute("SELECT typeID FROM task_type_data WHERE uid = ?  \
+#             AND task_title = ? AND task_description = ? AND task_type = 'monthly' ",
+#             ('2f6b6d36-2710-408d-984c-056a387cb3a1','battery watter','change batter water',)) 
+
+# get_typeID = cursor.fetchall()
+# print("get_typeID:",get_typeID)
+  
+  
    
-   
+# startup()
 # create_task_types()
 # if __name__ == '__name__':
 # create_taskdata()
 # TEST-CASES    
     # create_users()    
-# create_database()
+# create_taskdata()
 # dbdata_to_dict(uid=123)
 # insert_task(uid=123, created_date=1456132541,task='go for a walk4',description='dadadawd dawdacsd',priority=0,urgent=1)
 # update_task(tid=1,uid=123,task='go kill vasu',priority=True,urgent=True)

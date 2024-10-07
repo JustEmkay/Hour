@@ -317,7 +317,34 @@ def get_list_type(**kwargs) -> dict:
     if kwargs['t_type'] == "once":
         statement = "SELECT tid,task,"
     
+def get_streakList(**kwargs) -> list[float]:
+    
 
+    cursor.execute("SELECT created_date,status FROM task_data WHERE uid = ? AND (task_type = 'once'  OR task_type = 'daily') ",
+                   (kwargs['uid'],))
+    stat_time = cursor.fetchall()
+    
+    filtered_ts : list[int] = []
+    for x in stat_time:
+        if x[0] not in filtered_ts:
+            filtered_ts.append(x[0])
+    print(filtered_ts)
+    
+    temp_stat_list = []
+    for f_ts in filtered_ts:
+        flag = 0
+        counter = 0
+        for s_t in stat_time:
+           if s_t[0] == f_ts:
+               counter += 1
+               if s_t[1]:
+                flag += 1
+        percentage : float = (flag/counter)*100 
+        temp_stat_list.append(round(percentage,1))         
+    
+    return temp_stat_list
+    
+    
 #---------------------user_data---------------------
  
 def insert_user(*args) -> bool:

@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+import calendar 
 from forms import create_task_dialog,task_view
 from http_req import load_todays_task,today_timestamp,get_streak_score
 
@@ -34,8 +35,19 @@ def streak_counter(uid : str) -> dict:
         'max_streak' : max(streak_list),
     }
 
-
+def monthEnd()->int:
     
+    lastDate = calendar.monthrange(datetime.now().year,datetime.now().day)[1]
+    nowDate = datetime.now().day
+    dayLeft = lastDate - nowDate
+    
+    return {
+            'dayLeft' : dayLeft,
+            'lastDate' : lastDate,
+            'nowDate' : nowDate
+            }
+
+   
 def mainpage() -> None:
     if not st.session_state.task_data:
         result = load_todays_task(st.session_state.auth['userid'])
@@ -56,23 +68,26 @@ def mainpage() -> None:
         else:
             st.write('--Empty--')
 
-    year_counter = [0,0]
     with counter_col.container(border=True):
         result = streak_counter(st.session_state.auth['userid'])
         st.metric(label="Streak",
                         value=f" {result['current_streak']}🔥",
                         delta=f"{result['max_streak']}",
                         help="streak is added when you finish 50% of thats day's task")
+    
+    with counter_col.container(border=True):
+        
+        me = monthEnd()
+        
+        st.metric(label=f"{datetime.now().strftime('%B')} End in",
+                        value=f"{me['dayLeft']} 📅",
+                        delta=f"{0-me['nowDate']} day past",
+                        )
 
     with counter_col.container(border=True):
         alive_counter = being_alive(st.session_state.auth['dob'])
         st.metric(label="Being Alive",
                         value=f"{alive_counter[0]} days",
                         delta=f"{alive_counter[1]} months")
-    
-    with counter_col.container(border=True):
-        st.metric(label="MonthEnd",
-                        value=f"{year_counter[0]} 📅",
-                        )
   
     

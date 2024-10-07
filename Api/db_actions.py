@@ -313,9 +313,41 @@ def dbdata_to_dict(**kwargs) -> dict:
     
     return tasks_data
 
-def get_list_type(**kwargs) -> dict:
-    if kwargs['t_type'] == "once":
-        statement = "SELECT tid,task,"
+def get_list_type(**kwargs) -> list:
+    
+    if kwargs['t_type'] == 'all':
+        condition = ''
+    else:
+        condition = f" AND task_type = '{kwargs['t_type']}' "
+    
+    try:
+    
+        cursor.execute(f""" SELECT  tid,task,description,task_type,priority,urgent,status,created_date FROM 
+                    task_data WHERE uid = ? {condition} ORDER BY created_date DESC""",(kwargs['uid'],))
+    
+        r_task_data : list[tuple] = cursor.fetchall()
+        
+    
+        cursor.execute(f""" SELECT  typeID,task_title,task_description,task_type,priority,urgent,created_date FROM 
+                    task_type_data WHERE uid = ? {condition} ORDER BY created_date DESC""",(kwargs['uid'],))
+    
+        r_type_data : list[tuple] = cursor.fetchall()
+        
+        
+        return {
+            'taskData' : r_task_data,
+            'typeData' : r_type_data    
+        }
+    
+    except Exception as e:
+        print(f"Error in get_list_type() : {e}")
+        return {
+            'taskData' : [],
+            'typeData' : []    
+        }
+
+
+
     
 def get_streakList(**kwargs) -> list[float]:
     

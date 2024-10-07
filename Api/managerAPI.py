@@ -32,7 +32,11 @@ class taskData(BaseModel):
     t_type : str
     status : bool
     task_date : int
-    
+
+class del_taskIDs(BaseModel):
+    taskID : dict
+    preID : dict
+   
     
 @app.get("/")
 async def test():
@@ -181,6 +185,8 @@ async def update_task_status(uid : str , tid : int, opt : str, opt_val: bool):
 async def get_type_tasklist(uid:str,t_type:str):
     result = get_list_type(uid=uid, t_type=t_type)
     
+    return result
+    
 @app.get("/streaks/{uid}")
 async def streakList(uid:str):
     
@@ -192,3 +198,6 @@ async def streakList(uid:str):
         'data' : result
     }
     
+@app.delete("/task/delete/selected/{uid}")
+async def delete_tasks(uid : str, taskIDs : del_taskIDs):
+    print(uid,taskIDs)

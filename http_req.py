@@ -13,7 +13,6 @@ def get_streak_score(uid : str) -> int:
     if res == 200:
         return req.json()
 
-
 def test_connection() -> dict:
     req = requests.get(API_URL + "connection")
     res = req.status_code
@@ -61,3 +60,9 @@ def get_type_tasklist(uid:str,t_type:str) -> dict:
     res = req.status_code
     if res == 200:
         return req.json()
+    
+def delete_task(uid:str,**taskIDs) -> dict:
+    req = requests.get(API_URL + f"task/delete/selected/{uid}",json=taskIDs)
+    res = req.status_code
+    if res == 200:
+        return req.json() 

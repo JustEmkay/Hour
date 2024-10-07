@@ -1,6 +1,6 @@
 import streamlit as st 
 from datetime import datetime
-import re,requests,time
+import re,time
 from models import UserRegister,Task
 from creds import API_URL
 from http_req import *
@@ -13,6 +13,10 @@ def validate_email(email):
     if re.match(r"[^@]+@[^@]+\.[^@]+", email):  
         return True  
     return False
+
+def timestamp_to_date(stamp : int) -> str:
+    tdate = datetime.fromtimestamp(stamp).strftime("%B %d, %Y")
+    return tdate
 
 
 @st.dialog("Register Form")
@@ -150,19 +154,92 @@ def create_task_dialog():
             st.session_state.task_data = result['data']
             st.rerun()
 
-@st.dialog('Delete task',width='small')
+@st.dialog('Delete task',width='large')
 def delete_task_dialog():
-    
-    
-    
+
     t_type = st.selectbox('select task type',
-                           ['once','daily','monthly','yearly'],
-                           index=None)
+                           ['all','once','daily','monthly','yearly'],
+                           index=0)
+    
+    alert = st.empty()
+    
+    del_slctd_pre : list = []
+    del_slctd_task : list = []
+     
+    if t_type:
+        t_result = get_type_tasklist(st.session_state.auth['userid'],t_type)
+        
+        taskTimestamp : list = []
+        for x in t_result['taskData']:
+            if x[7] not in taskTimestamp:
+                taskTimestamp.append(x[7])
+                        
+        typeTimestamp : list = []
+        for x in t_result['typeData']:
+            if x[6] not in typeTimestamp:
+                typeTimestamp.append(x[6])
+
+    del1_col, del2_col = st.columns(2)
+    
+    with del1_col.container(height=400):
+        st.caption(f"predefined {'temporary' if t_type == 'once' else t_type} task")
+        if t_result['typeData']:
+            
+            for tstamp in typeTimestamp:
+                st.write(f':grey[| {timestamp_to_date(tstamp)}] ⤵️')    
+                for i in t_result['typeData']:
+
+                    if i[6] == tstamp:
+                        if st.checkbox(f"{i[1]}" ,key=i[0]):
+                            st.caption(i[2])
+                            if i[0] not in del_slctd_pre:
+                                del_slctd_pre.append(i[0])
+                        else:
+                            if i[0] in del_slctd_pre:
+                                del_slctd_pre.pop(del_slctd_pre.index(i[0]))
+                            
+                            
+                            
+        else:
+            st.text("---Empty---")
 
     
-    with st.container(height=300):
-        if t_type:
-            get_type_tasklist(st.session_state.auth['userid'],t_type)
+    with del2_col.container(height=400):
+        st.caption(f"{'temporary' if t_type == 'once' else t_type} task")
+        if t_result['taskData']:
+            
+            for tstamp2 in taskTimestamp:
+                st.write(f':grey[| {timestamp_to_date(tstamp2)}] ⤵️')
+                for i in t_result['taskData']:
+                    
+                    if i[7] == tstamp2:
+                        if st.checkbox(f"{i[1]}" ,key=f'{i[0]}t'):
+                            st.caption(i[2])
+                            if i[0] not in del_slctd_task:
+                                del_slctd_task.append(i[0])
+                        else:
+                            if i[0] in del_slctd_task:
+                                del_slctd_task.pop(del_slctd_task.index(i[0]))
+                    
+        else:
+                st.text("---Empty---")
+    
+    
+        statement = ""
+        if del_slctd_pre:
+            statement = statement + f"Predefined - {len(del_slctd_pre)} "
+        if del_slctd_task:
+            statement = statement + f" Tasks - {len(del_slctd_task)} "
+        
+        if del_slctd_task or del_slctd_pre:
+            alert.info(f"selected : {statement} for deletion")
+            
+        
+    if st.button('delete selected',use_container_width=True):
+        if del_slctd_task or del_slctd_pre:
+            delete_task(st.session_state.auth['userid'],
+                        preID=del_slctd_pre,taskID=del_slctd_task)
+
             
 def task_view() -> None:
     for idx,task in enumerate(st.session_state.task_data[f'{today_timestamp}'],start=1):

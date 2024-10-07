@@ -181,4 +181,14 @@ async def update_task_status(uid : str , tid : int, opt : str, opt_val: bool):
 async def get_type_tasklist(uid:str,t_type:str):
     result = get_list_type(uid=uid, t_type=t_type)
     
+@app.get("/streaks/{uid}")
+async def streakList(uid:str):
+    
+    result = get_streakList(uid=uid)
+    
+    return {
+        'status' : True,
+        'message' : 'accessed streaks.',
+        'data' : result
+    }
     

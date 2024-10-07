@@ -5,6 +5,15 @@ from datetime import datetime
 today_timestamp : int = int(datetime(datetime.now().year,datetime.now().month,
                                      datetime.now().day,0,0,0).timestamp())
 
+
+
+def get_streak_score(uid : str) -> int:
+    req = requests.get(API_URL + f"streaks/{uid}")
+    res = req.status_code
+    if res == 200:
+        return req.json()
+
+
 def test_connection() -> dict:
     req = requests.get(API_URL + "connection")
     res = req.status_code

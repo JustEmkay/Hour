@@ -18,7 +18,6 @@ def timestamp_to_date(stamp : int) -> str:
     tdate = datetime.fromtimestamp(stamp).strftime("%B %d, %Y")
     return tdate
 
-
 @st.dialog("Register Form")
 def register_form() -> None:
     placeholder = st.empty()
@@ -202,8 +201,7 @@ def delete_task_dialog():
                             
         else:
             st.text("---Empty---")
-
-    
+  
     with del2_col.container(height=400):
         st.caption(f"{'temporary' if t_type == 'once' else t_type} task")
         if t_result['taskData']:
@@ -233,14 +231,18 @@ def delete_task_dialog():
         
         if del_slctd_task or del_slctd_pre:
             alert.info(f"selected : {statement} for deletion")
-            
-        
+                 
     if st.button('delete selected',use_container_width=True):
         if del_slctd_task or del_slctd_pre:
-            delete_task(st.session_state.auth['userid'],
+            status = delete_task(st.session_state.auth['userid'],
                         preID=del_slctd_pre,taskID=del_slctd_task)
-
-            
+            if status['status']:
+                alert.success(status['message'])
+                time.sleep(1)
+                st.rerun()
+            else:
+                alert.error(status['message'])
+                         
 def task_view() -> None:
     for idx,task in enumerate(st.session_state.task_data[f'{today_timestamp}'],start=1):
         if not task['status']:

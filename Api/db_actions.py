@@ -187,17 +187,16 @@ def delete_task(**kwargs) -> bool:
 def get_all_task(**kwargs) -> list:
     
     try:
-        cursor.execute('SELECT * FROM task_data WHERE uid = ?',(kwargs['uid'],))
+        cursor.execute('SELECT * FROM task_data WHERE uid = ?  ORDER BY created_date DESC',(kwargs['uid'],))
         
         result : list[tuple] = cursor.fetchall()
-        # print("All data:",result)
         return result
         
                 
     except Exception as e:
         print("Error:",e)
         cursor.execute("ROLLBACK")
-        return None
+        return []
              
 def specific_task(**kwargs) -> tuple:
     try:
@@ -345,9 +344,6 @@ def get_list_type(**kwargs) -> list:
             'taskData' : [],
             'typeData' : []    
         }
-
-
-
     
 def get_streakList(**kwargs) -> list[float]:
     
@@ -376,7 +372,29 @@ def get_streakList(**kwargs) -> list[float]:
     
     return temp_stat_list
     
+def delete_selected_task(**kwargs) -> bool:
     
+    try:
+        
+        if kwargs['taskID']:
+            for ids in kwargs['taskID']:    
+                cursor.execute(" DELETE FROM task_data WHERE uid = ? AND tid = ?",
+                            (kwargs['uid'],ids,))
+                
+        if kwargs['typeID']:
+            for ids in kwargs['typeID']:    
+                cursor.execute(" DELETE FROM task_type_data WHERE uid = ? AND typeID = ?",
+                            (kwargs['uid'],ids,))
+                
+        return True
+        
+
+    except Exception as e:
+        print("Error in delete_selected_task():",e)
+        cursor.execute("ROLLBACK")
+        return False
+
+ 
 #---------------------user_data---------------------
  
 def insert_user(*args) -> bool:
@@ -423,7 +441,6 @@ def get_userdata(**kwargs) -> dict:
     result = cursor.fetchone()
     return result    
 
-
 #---------------------startup---------------------
  
 def startup() -> None:
@@ -452,7 +469,8 @@ def startup() -> None:
 # get_typeID = cursor.fetchall()
 # print("get_typeID:",get_typeID)
   
-  
+# delete_selected_task(uid = '2f6b6d36-2710-408d-984c-056a387cb3a1',
+#                      taskID = [64, 52] , typeID = [12, 8]) 
    
 # startup()
 # create_task_types()

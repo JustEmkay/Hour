@@ -34,8 +34,8 @@ class taskData(BaseModel):
     task_date : int
 
 class del_taskIDs(BaseModel):
-    taskID : dict
-    preID : dict
+    preID : list
+    taskID : list
    
     
 @app.get("/")
@@ -200,4 +200,21 @@ async def streakList(uid:str):
     
 @app.delete("/task/delete/selected/{uid}")
 async def delete_tasks(uid : str, taskIDs : del_taskIDs):
-    print(uid,taskIDs)
+    if delete_selected_task(uid=uid, taskID = taskIDs.taskID,
+                         typeID = taskIDs.preID):
+        return {
+            'status' : True,
+            'message' : 'deletion successful'
+        }
+    return {
+        'status' : False,
+        'message' : 'Somthing went wrong'
+    }
+    
+@app.get("/task/all/{uid}")
+async def get_all_tasks(uid : str):
+    result = get_all_task(uid=uid)
+    
+    return {
+        'data' : result
+    }

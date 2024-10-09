@@ -12,7 +12,7 @@ def being_alive(dob_stamp : int) -> list:
 
 def streak_counter(uid : str) -> dict:
     result : list = get_streak_score(uid)
-    print("result:",result)
+
     
     filter_result : list[int] = [1 if x >= 50 else 0 for x in result['data']]
     

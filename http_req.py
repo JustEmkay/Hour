@@ -62,7 +62,15 @@ def get_type_tasklist(uid:str,t_type:str) -> dict:
         return req.json()
     
 def delete_task(uid:str,**taskIDs) -> dict:
-    req = requests.get(API_URL + f"task/delete/selected/{uid}",json=taskIDs)
+    print(taskIDs)
+    req = requests.delete(API_URL + f"task/delete/selected/{uid}",json=taskIDs)
     res = req.status_code
     if res == 200:
         return req.json() 
+    
+def get_all_task(uid:str) -> dict:
+    req = requests.get(API_URL + f"task/all/{uid}")
+    res = req.status_code
+    if res == 200:
+        return req.json() 
+    return []

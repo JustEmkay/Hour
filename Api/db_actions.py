@@ -99,7 +99,7 @@ def check_users_predefine(**kwargs) -> None:
         # print(f"get_typeIDs:{get_typeIDs}\nget_task_typeIDs:{get_task_typeIDs}")
         
         if get_typeIDs:    
-            print(f"\ndeff:{deff_typeIDs}")
+            # print(f"\ndeff:{deff_typeIDs}")
             cursor.execute("SELECT uid,typeID,task_title,task_description, \
                             task_type,priority,urgent from task_type_data \
                             WHERE uid = ? AND task_type = 'daily' ",
@@ -113,7 +113,7 @@ def check_users_predefine(**kwargs) -> None:
                     temp_tt = list(tt) + [kwargs['created_date']]
                     temp_Result.append(tuple(temp_tt))
                 
-            print("temp:",temp_Result)    
+            # print("temp:",temp_Result)    
 
             cursor.executemany("INSERT INTO task_data(uid,typeID,task,description,task_type,priority,urgent,created_date) \
                 values(?,?,?,?,?,?,?,?)",temp_Result)
@@ -195,7 +195,19 @@ def get_all_task(**kwargs) -> list:
                 
     except Exception as e:
         print("Error:",e)
-        cursor.execute("ROLLBACK")
+        return []
+
+def get_all_pred_task(**kwargs) -> list:
+    
+    try:
+        cursor.execute('SELECT * FROM task_type_data WHERE uid = ?  ORDER BY created_date DESC',(kwargs['uid'],))
+        
+        result : list[tuple] = cursor.fetchall()
+        return result
+        
+                
+    except Exception as e:
+        print("Error:",e)
         return []
              
 def specific_task(**kwargs) -> tuple:
@@ -230,8 +242,8 @@ def get_today_task(**kwargs) -> tuple:
         print("Error:",e)
         return None
     
-def update_task(**kwargs) -> bool:
-    
+def update_task_status(**kwargs) -> bool:
+
     kwargs.update({
         kwargs['opt'] : kwargs['opt_val']
     })
@@ -263,7 +275,6 @@ def update_task(**kwargs) -> bool:
     
     try:
         cursor.execute(f'UPDATE task_data SET {update} WHERE {condition}')
-        conn.commit()
         return True
         
     except Exception as e:
@@ -356,7 +367,6 @@ def get_streakList(**kwargs) -> list[float]:
     for x in stat_time:
         if x[0] not in filtered_ts:
             filtered_ts.append(x[0])
-    print(filtered_ts)
     
     temp_stat_list = []
     for f_ts in filtered_ts:
@@ -394,7 +404,36 @@ def delete_selected_task(**kwargs) -> bool:
         cursor.execute("ROLLBACK")
         return False
 
- 
+def update_task(uid,applyAll,**kwargs) -> bool:
+    
+    # can update title, description, priority, urgent .
+    # have uid , tid , typeID
+    # 2f6b6d36-2710-408d-984c-056a387cb3a1
+    # {'task': 'write diary ', 'descr': 'do a journal questions ', 'priority': False, 'urgent': False, 'tid': 63, 'typeID': 9}
+    # print(kwargs)
+    
+    try:
+        cursor.execute("UPDATE task_data SET task=?,description=?,priority = ?,urgent = ? \
+                       WHERE uid=? AND tid=?",(kwargs['task'],kwargs['description'],
+                                               kwargs['priority'],kwargs['urgent'],uid,kwargs['tid']))
+    except Exception as e:
+        print("error in update_task()[task_data]: ",e)
+        return False
+        
+    try:
+        if applyAll:
+            cursor.execute("UPDATE task_type_data SET task_title=?,task_description=?,priority = ?,urgent = ? \
+                        WHERE uid=? AND typeID=?",(kwargs['task'],kwargs['description'],
+                                                kwargs['priority'],kwargs['urgent'],uid,kwargs['typeID']))
+    except Exception as e:
+        print("error in update_task()[task_type]: ",e)
+        return False
+                
+    return True         
+
+
+
+
 #---------------------user_data---------------------
  
 def insert_user(*args) -> bool:

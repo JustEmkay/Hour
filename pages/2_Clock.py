@@ -24,7 +24,7 @@ def show_clock() -> None:
         if st.session_state.task_data:
             for idx,col in enumerate(st.session_state.task_data[str(today_timestamp)],start=1):
                 if col['status']:
-                    with st.expander(f":grey[{idx}.{col['task']}]"):
+                    with st.expander(f"~~:grey[{idx}.{col['task']}]~~"):
                         st.caption(f"Description: :blue[{col['description']}]")
                         
                 if not col['status']:
@@ -41,7 +41,7 @@ def show_clock() -> None:
         st.subheader('Yearly📅',anchor=False)
     
     while 1:
-        clock.title(datetime.now().strftime("%A, %B %d, %Y %I:%M:%S %p"),
+        clock.title(datetime.now().strftime("%A, %B %d, %Y %I:%M: :red[%S] %p"),
                     anchor=False)
         time.sleep(1)
     

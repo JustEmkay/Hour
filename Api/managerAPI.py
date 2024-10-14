@@ -37,6 +37,8 @@ class del_taskIDs(BaseModel):
     preID : list
     taskID : list
    
+
+    
     
 @app.get("/")
 async def test():
@@ -133,7 +135,7 @@ def unpack_list_to_dict(data:list[tuple], created_date:int, dict_keys:list[str])
                     dict_keys[idx] : col
                 }
                 ) 
-        print("temp_task:",temp_task) 
+        # print("temp_task:",temp_task) 
         temp_task_list.append(temp_task)
         temp_task = {}
         
@@ -169,9 +171,9 @@ async def todays_task(uid:str, created_date:int):
 }
     
 @app.put("/update/{uid}/{tid}")
-async def update_task_status(uid : str , tid : int, opt : str, opt_val: bool):
+async def update_selected_task_status(uid : str , tid : int, opt : str, opt_val: bool):
     print(f"uid:{uid}\ntid:{tid}\noption:{opt}\noption val:{opt_val}")
-    if update_task(uid=str(uid),tid=tid,opt=opt,opt_val=opt_val):
+    if update_task_status(uid=str(uid),tid=tid,opt=opt,opt_val=opt_val):
         return {
             'status' : True,
             'message' : "updated task successfully"
@@ -217,4 +219,29 @@ async def get_all_tasks(uid : str):
     
     return {
         'data' : result
+    }
+    
+@app.get("/task/all/predefined/{uid}")
+async def get_pre_tasks(uid : str):
+    result = get_all_pred_task(uid=uid)
+    
+    return {
+        'data' : result
+    }
+    
+@app.put("/task/update/{uid}")
+async def update_selected_task(uid:str, applyAll : bool, task_data : dict ):
+    
+    
+    if update_task(uid,applyAll,task=task_data['task'],description=task_data['descr'],
+                         priority=task_data['priority'],urgent=task_data['urgent'],tid=task_data['tid'],typeID=task_data['typeID']):
+    
+        return {
+            'status' : True,
+            'message' : 'updated successfully'
+        }
+    
+    return {
+        'status' : False,
+        'message' : 'failed to update'
     }

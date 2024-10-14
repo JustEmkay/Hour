@@ -74,3 +74,19 @@ def get_all_task(uid:str) -> dict:
     if res == 200:
         return req.json() 
     return []
+
+def get_pre_task(uid:str) -> dict:
+    req = requests.get(API_URL + f"task/all/predefined/{uid}")
+    res = req.status_code
+    if res == 200:
+        return req.json() 
+    return []
+
+def update_specific_task(uid:str,applyAll:bool,**task_data) -> bool:
+    print("applyAll:",applyAll)
+    print("taskdata:",task_data)
+    req = requests.put(API_URL + f'task/update/{uid}?applyAll={applyAll}',json=task_data,
+                       )
+    res = req.status_code
+    if res == 200:
+        return req.json()

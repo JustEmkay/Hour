@@ -256,6 +256,7 @@ def task_view() -> None:
                     st.rerun()
                 if not update_result['status']:
                     st.toast(f":red-background[{update_result['message']}]")
+        
         if task['status']:
             if not st.checkbox(f"~~:grey[{task['task']}]~~",value=True,key=task['tid']):
                 update_result = task_completed(st.session_state.auth['userid'],task['tid'],'status',False)
@@ -267,3 +268,36 @@ def task_view() -> None:
                     st.rerun()
                 if not update_result['status']:
                     st.toast(f":red-background[{update_result['message']}]")
+                                  
+@st.dialog('edit task')
+def edit_task(data):
+    st.write(data)
+    title = st.text_input('Task title',value=data[3])
+    descr = st.text_area('Task description',value=data[4])
+    p_col, u_col = st.columns(2)
+    priority = p_col.radio("Task Priority",
+                           [False,True],
+                           index=data[6])
+    urgent = u_col.radio("Task Urgency",
+                         [False,True],
+                         index=data[7])
+    col1, col2 = st.columns(2)
+    col1.write(f'Task Type: :green[{data[5]}]')
+    col2.write(f'Status: {":green[Completed]" if data[8] else ":red[Not Completed]"}')
+    toggle = st.toggle("Update predefined task too")
+    
+    alert = st.empty()
+    
+    if st.button('update',use_container_width=True,
+                 type='primary',help=':blue-background[info:Updating any task]'):
+        t = Task(title,descr,priority,urgent,data[5],data[8],data[9])
+        response = update_specific_task(st.session_state.auth['userid'],toggle,task=t.task,
+                             descr=t.description,priority=priority,
+                             urgent=urgent,tid=data[0],typeID=data[2])
+        
+        if response['status']:
+            alert.success(response['message'])
+            time.sleep(2)
+            st.rerun()
+        else:
+            alert.error(response['message'])

@@ -13,7 +13,6 @@ def being_alive(dob_stamp : int) -> list:
 def streak_counter(uid : str) -> dict:
     result : list = get_streak_score(uid)
 
-    
     filter_result : list[int] = [1 if x >= 50 else 0 for x in result['data']]
     
     count = 0
@@ -37,9 +36,12 @@ def streak_counter(uid : str) -> dict:
 
 def monthEnd()->int:
     
-    lastDate = calendar.monthrange(datetime.now().year,datetime.now().day)[1]
+    lastDate = calendar.monthrange(datetime.now().year,datetime.now().month)[1]
+    print(lastDate)
     nowDate = datetime.now().day
     dayLeft = lastDate - nowDate
+    
+ 
     
     return {
             'dayLeft' : dayLeft,
@@ -53,20 +55,20 @@ def mainpage() -> None:
         result = load_todays_task(st.session_state.auth['userid'])
         st.session_state.task_data = result['data']
     
-    st.title(f"Welcome {st.session_state.auth['username']} !",
+    st.title(f"Welcome :green[TaskEase]",
              anchor=False)
     title_col, counter_col = st.columns([0.7,0.3],vertical_alignment='top')
     
-    with title_col.container(border=True,height=400):
-        col1, col2 = st.columns([0.7,0.3])
-        col1.caption("today's tasks:")
-        if col2.button('add task',use_container_width=True):
-            create_task_dialog()
+    with title_col.container(border=True,height=420):
+        st.caption("today's tasks:")
             
         if st.session_state.task_data:
             task_view()
         else:
             st.write('--Empty--')
+            
+    if st.button('add task',use_container_width=True):
+        create_task_dialog()
 
     with counter_col.container(border=True):
         result = streak_counter(st.session_state.auth['userid'])

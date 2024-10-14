@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 from datetime import datetime
-from forms import create_task_dialog,delete_task_dialog,timestamp_to_date
+from forms import create_task_dialog,delete_task_dialog,timestamp_to_date,edit_task
 from http_req import get_all_task,today_timestamp
 
 
@@ -99,18 +99,28 @@ def task_page() -> None:
                       help='Task is both not important and not usrgent')
         
         with col2.container(border=True,height=470):
+            st.divider()
+    
             filtered_date : list[int] = []
             for x in filtered_task:
                 if x[9] not in filtered_date:
                     filtered_date.append(x[9])
-            
+    
 
             for y in filtered_date:
                 st.write(f':grey[| {timestamp_to_date(y)}] ⤵️')  
                 for z in filtered_task:
                     if z[9] == y:
-                        st.checkbox(f'{z[3]} ',key=z[0])
-                        st.write(f'| :grey[descr:] {z[4]} ')
+                        if st.checkbox(f'{z[3]} ',key=z[0]):
+                            st.write(f'| :grey[descr:] {z[4]} ')
+                            blnk, edt_bttn, del_bttn = st.columns([2,1,1])
+                            del_bttn.button('delete',key=f'{z[0]}d',
+                                            use_container_width=True)
+                            if edt_bttn.button('edit',key=f'{z[0]}e',
+                                            use_container_width=True):
+                                edit_task(z)
+                        
+                st.divider()
                 
         
 

@@ -301,3 +301,45 @@ def edit_task(data):
             st.rerun()
         else:
             alert.error(response['message'])
+            
+def user_verification_login( key_name:str ) -> bool:
+    
+    """ verify user .
+    
+    Args:
+        key_name (str): enter a key name. mustt be unique name
+        
+    Returns:
+        bool: retrun True if user exist , else Return False
+    
+    """
+
+    username = st.text_input("Enter username/email",key=f'uname_{key_name}')
+    password = st.text_input("Enter password",type='password',key=f'pswrd_{key_name}')
+  
+    val_alert_col, verify_bttn = st.columns([0.7,0.3],vertical_alignment='center')
+    val_alert = val_alert_col.empty()
+    
+    if verify_bttn.button("Verify",type='primary',
+                            use_container_width=True,
+                            key=f'verifyBttn_{key_name}'):
+        val = verify_user(st.session_state.auth['userid'],userinput=username,password=password)
+        if val['status']:
+            if val['user_data']['userid'] == st.session_state.auth['userid']:
+                val_alert.success('Verified user successfully.')
+                return True
+        else:
+            val_alert.error('User failed to verified')
+            return False
+    else:
+        return False
+        
+
+def logout_function() -> None:
+        st.session_state.auth = {
+        'authorization' : False,
+        'username' : None,
+        'userid' : None,
+        'dob' : None
+    }
+        st.session_state.task_data = {}

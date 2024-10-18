@@ -5,7 +5,6 @@ from forms import create_task_dialog,delete_task_dialog,timestamp_to_date,edit_t
 from http_req import get_all_task,today_timestamp
 
 
-
 def filter_task_data(option:str, data:list) -> list:
     result : list[list] = []
 
@@ -24,7 +23,6 @@ def filter_task_data(option:str, data:list) -> list:
                 result.append(x)
         return result
 
-
 def task_page() -> None:
     
     allTask = get_all_task(st.session_state.auth['userid'])
@@ -39,17 +37,14 @@ def task_page() -> None:
             time.sleep(0.5)
             alert.caption(f'Please login. Forwading to login page in {10-i}s')
         st.switch_page('Home.py')
-    else:
-        
-        
+    
+    else:    
         alert_col, bttn_col1, bttn_col2 = st.columns([2,1,1])
         
-        # alert_col.info(f"Today: {datetime.today().date()}")
-        filter_opt : str = alert_col.selectbox('filter',['all','current','once','daily','montly','yearly'],
+        filter_opt : str = alert_col.selectbox('filter',['all','current','once','daily','monthly','yearly'],
                             label_visibility='collapsed')
          
         filtered_task : list = filter_task_data(filter_opt,allTask['data'])
-        
         
         ImpUrg : list = []
         ImpNUrg : list = []
@@ -99,31 +94,42 @@ def task_page() -> None:
                       help='Task is both not important and not usrgent')
         
         with col2.container(border=True,height=470):
-            st.divider()
+        
     
             filtered_date : list[int] = []
             for x in filtered_task:
                 if x[9] not in filtered_date:
                     filtered_date.append(x[9])
-    
+
 
             for y in filtered_date:
-                st.write(f':grey[| {timestamp_to_date(y)}] ⤵️')  
-                for z in filtered_task:
-                    if z[9] == y:
-                        if st.checkbox(f'{z[3]} ',key=z[0]):
-                            st.write(f'| :grey[descr:] {z[4]} ')
-                            blnk, edt_bttn, del_bttn = st.columns([2,1,1])
-                            del_bttn.button('delete',key=f'{z[0]}d',
-                                            use_container_width=True)
-                            if edt_bttn.button('edit',key=f'{z[0]}e',
-                                            use_container_width=True):
-                                edit_task(z)
-                        
-                st.divider()
                 
-        
-
+                with st.container(border=True):
+                    
+                    if y == today_timestamp:
+                        str_date = f'**:green[| {timestamp_to_date(y)}]** ⤵️'
+                    else:
+                        str_date = f':grey[| {timestamp_to_date(y)}] ⤵️'
+                        
+                    st.write(str_date)  
+                    for z in filtered_task:
+                        if z[9] == y:
+                            
+                            title = f'{z[3]}'
+                            if z[8]:          
+                                title = f'~~:grey[{z[3]}]~~'
+                            if st.checkbox(title,key=z[0]): #diplay option: [edit,delete]
+                                st.write(f'| :grey[descr:] {z[4]} ')
+                                blnk, edt_bttn, del_bttn = st.columns([2,1,1])
+                                del_bttn.button('delete',key=f'{z[0]}d',
+                                                use_container_width=True)
+                                if edt_bttn.button('edit',key=f'{z[0]}e',
+                                                use_container_width=True):
+                                    edit_task(z)
+                        
+                
+                
+    
     
 if __name__ == '__main__' :
     

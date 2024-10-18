@@ -12,6 +12,13 @@ def being_alive(dob_stamp : int) -> list:
 
 def streak_counter(uid : str) -> dict:
     result : list = get_streak_score(uid)
+    
+    if not result['data']:
+        return {
+        'current_percentage' : 0,
+        'current_streak' : 0,
+        'max_streak' : 0,
+        }
 
     filter_result : list[int] = [1 if x >= 50 else 0 for x in result['data']]
     
@@ -37,11 +44,9 @@ def streak_counter(uid : str) -> dict:
 def monthEnd()->int:
     
     lastDate = calendar.monthrange(datetime.now().year,datetime.now().month)[1]
-    print(lastDate)
     nowDate = datetime.now().day
     dayLeft = lastDate - nowDate
     
- 
     
     return {
             'dayLeft' : dayLeft,
@@ -55,7 +60,7 @@ def mainpage() -> None:
         result = load_todays_task(st.session_state.auth['userid'])
         st.session_state.task_data = result['data']
     
-    st.title(f"Welcome :green[TaskEase]",
+    st.title(f"Welcome to :green[TaskEase]",
              anchor=False)
     title_col, counter_col = st.columns([0.7,0.3],vertical_alignment='top')
     

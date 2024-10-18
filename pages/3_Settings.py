@@ -62,7 +62,6 @@ def list_to_hash(each_pretask : list) -> dict:
 @st.dialog("Delete account")
 def delete_account_dialog():
     result = user_verification_login("delete")
-    st.write(result)
     if result:
         with st.status("Sending request to server...", expanded=True) as status:
             time.sleep(2)

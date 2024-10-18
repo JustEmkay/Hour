@@ -36,9 +36,7 @@ class taskData(BaseModel):
 class del_taskIDs(BaseModel):
     preID : list
     taskID : list
-   
-
-    
+     
     
 @app.get("/")
 async def test():
@@ -92,6 +90,36 @@ async def validate_user(loginInfo : LoginInfo):
                     'userid' : val_data[0],
                     'username' : val_data[1],
                     'dob' : val_data[3]    ,
+                    'authorization' : True
+                }
+            }
+        else:
+            return {
+                'status':False,
+                'message' : 'Wrong password',
+            }
+                        
+    return {
+        'status' : False,
+        'message' : 'user not found'
+    }
+
+@app.get("/verify/{uid}")
+async def validate_user(uid:str, loginInfo : LoginInfo):
+
+    result = re_check_user(uid=uid,username = loginInfo.userinput, email = loginInfo.userinput)   
+    if result['email'] or result['username']:
+        val_data = verify_userdata(uid=uid,userinput=loginInfo.userinput)
+        user_hash = loginInfo.password.encode('utf-8')
+        user_og_hash = val_data[2].encode()
+        result : bool = bcrypt.checkpw(user_hash,user_og_hash)
+        if result:
+            return {
+                'status':True,
+                'message' : 'User found!',
+                'user_data' : {
+                    'userid' : val_data[0],
+                    'username' : val_data[1],
                     'authorization' : True
                 }
             }
@@ -245,3 +273,45 @@ async def update_selected_task(uid:str, applyAll : bool, task_data : dict ):
         'status' : False,
         'message' : 'failed to update'
     }
+
+@app.get("/user/{uid}/{username}")
+async def get_user_data(uid:str, username:str, option:str):
+    
+    result = get_specific_userdata(uid=uid,username=username,option=option)
+    if result:
+        return {
+            'data' : result,
+            'status' : True
+            }
+        
+    return {
+            'data' : result,
+            'status' : False,
+            'message' : 'failed to load user data.'
+            }
+
+@app.put("/password/{uid}")
+async def password_reset(uid:str, userinput : dict):
+    if reset_password(uid=uid,password=userinput['password']):
+        
+        return {
+            'status' : True,
+            'message' : 'Password changed successfully.'
+        }
+    
+    return {
+        'status' : False,
+        'message' : 'Password change failed.'
+    }
+        
+@app.delete("/user/delete/{uid}")
+async def delete_user(uid:str, userInput : dict):
+    if delete_user_data(uid=uid,userinput=userInput['userinput']):
+        return {
+            'status' : True,
+            'message': 'Deleted successfully'
+        }
+    return {
+            'status' : False,
+            'message': 'Failed to delete account'
+        }

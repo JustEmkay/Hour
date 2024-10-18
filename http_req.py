@@ -1,10 +1,10 @@
 import requests
 from creds import API_URL
 from datetime import datetime
+from models import pass_hashing
 
 today_timestamp : int = int(datetime(datetime.now().year,datetime.now().month,
                                      datetime.now().day,0,0,0).timestamp())
-
 
 
 def get_streak_score(uid : str) -> int:
@@ -27,6 +27,12 @@ def create_account(**userdata) -> dict:
     
 def validate_user(**userinputs) -> None:
     req = requests.get(API_URL + "login",json=userinputs)
+    resp = req.status_code
+    if resp == 200:
+        return req.json()
+
+def verify_user(uid,**userinputs) -> None:
+    req = requests.get(API_URL + f"verify/{uid}",json=userinputs)
     resp = req.status_code
     if resp == 200:
         return req.json()
@@ -83,10 +89,36 @@ def get_pre_task(uid:str) -> dict:
     return []
 
 def update_specific_task(uid:str,applyAll:bool,**task_data) -> bool:
-    print("applyAll:",applyAll)
-    print("taskdata:",task_data)
-    req = requests.put(API_URL + f'task/update/{uid}?applyAll={applyAll}',json=task_data,
-                       )
+    req = requests.put(API_URL + f'task/update/{uid}?applyAll={applyAll}',json=task_data)
     res = req.status_code
     if res == 200:
         return req.json()
+       
+def get_userdata(uid:str, username:str, option:str) -> dict:
+    req = requests.get(API_URL + f'user/{uid}/{username}?option={option}')
+    res = req.status_code
+    if res == 200:
+        return req.json()
+    
+def password_reset(uid:str,password:str) -> dict:
+    
+    req = requests.put(API_URL + f"password/{uid}",json={"password":pass_hashing(password)})
+    res = req.status_code
+    if res == 200:
+        return req.json()
+     
+def delete_user_req(uid:str,**userinputs) -> dict:
+    
+    req = requests.delete(API_URL + f"user/delete/{uid}",json=userinputs)
+    res = req.status_code
+    if res == 200:
+        return req.json()    
+    
+    
+
+ 
+# def upload_task_data( uid:str, option:str, backup_task_data:list[list] ) -> bool:
+#     req = requests.put(API_URL + f"task/upload/{uid}?db={option}",json=backup_task_data )
+#     res = req.status_code
+#     if res == 200:
+#         return req.json()

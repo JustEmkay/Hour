@@ -1,12 +1,13 @@
 import streamlit as st
 import time
+from forms import logout_function
+
 
 def logout_menu() -> None:
     
     st.title('Logout',anchor=False)
     st.divider()
    
-    
     if not st.session_state.auth['authorization'] and \
     not st.session_state.auth['userid']:
    
@@ -24,14 +25,7 @@ def logout_menu() -> None:
         st.switch_page('Home.py')
     
     if conf_bttn.button('confirm',use_container_width=True,type='primary'):
-        st.session_state.auth = {
-        'authorization' : False,
-        'username' : None,
-        'userid' : None,
-        'dob' : None
-    }
-        st.session_state.task_data = {}
-        
+        logout_function()
         st.rerun()
     
 if __name__ == '__main__':
